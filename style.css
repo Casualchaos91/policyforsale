@@ -1,0 +1,95 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #e8f5e9; /* Light green background */
+    color: #1b5e20; /* Dark green text */
+}
+
+h1 {
+    text-align: center;
+    color: #2e7d32;
+}
+
+.search-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+input[type="text"] {
+    width: 50%;
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #388e3c;
+    border-radius: 5px;
+}
+
+.politician-list {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.politician {
+    border-bottom: 1px solid #ddd;
+    padding: 15px 0;
+}
+
+.politician:last-child {
+    border-bottom: none;
+}
+
+.politician h2 {
+    margin: 0;
+    color: #1b5e20;
+    cursor: pointer;
+}
+
+.politician h2:hover {
+    text-decoration: underline;
+}
+
+.politician p {
+    margin: 5px 0;
+    color: #388e3c;
+}
+
+.donation-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.donation-container h2 {
+    color: #2e7d32;
+}
+
+.donation-container ul {
+    list-style: none;
+    padding: 0;
+}
+
+.donation-container li {
+    font-size: 16px;
+    margin: 10px 0;
+}
+
+.crypto-button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.crypto-button:hover {
+    background-color: #388e3c;
+}
