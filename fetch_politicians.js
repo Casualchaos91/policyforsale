@@ -1,4 +1,3 @@
-
 import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
 // Initialize Supabase client with provided credentials
@@ -9,8 +8,8 @@ const supabase = createClient(
 
 async function fetchPoliticians() {
   let { data, error } = await supabase
-    .from('politicians')
-    .select('*');
+    .from("politicians")
+    .select("*");
 
   if (error) {
     console.error("Error fetching politicians:", error);
@@ -20,17 +19,20 @@ async function fetchPoliticians() {
   return data;
 }
 
-async function displayPoliticians() {
+async function displayPoliticians(politicians = null) {
   const list = document.getElementById("politicianList");
   list.innerHTML = "";
 
-  const politicians = await fetchPoliticians();
+  if (!politicians) {
+    politicians = await fetchPoliticians();
+  }
+
   if (politicians.length === 0) {
     list.innerHTML = "<p>No politicians found.</p>";
     return;
   }
 
-  politicians.forEach(politician => {
+  politicians.forEach((politician) => {
     list.innerHTML += `
       <div class="politician">
         <h2 onclick="window.open('${politician.source_url}', '_blank')">
@@ -45,19 +47,18 @@ async function displayPoliticians() {
 }
 
 async function searchPoliticians() {
-    const query = document.getElementById("searchBar").value.toLowerCase();
-    const politicians = await fetchPoliticians(); // Fetch politicians before filtering
+  const query = document.getElementById("searchBar").value.toLowerCase();
+  const politicians = await fetchPoliticians();
 
-    const filtered = politicians.filter(p => 
-        p.name.toLowerCase().includes(query) ||
-        p.state.toLowerCase().includes(query) ||
-        p.party.toLowerCase().includes(query) ||
-        p.industry.toLowerCase().includes(query) ||
-        p.donations.toLowerCase().includes(query) ||
-        p.vote_record.toLowerCase().includes(query)
-    );
+  const filtered = politicians.filter((p) =>
+    [p.name, p.state, p.party, p.industry, p.donations, p.vote_record]
+      .join(" ")
+      .toLowerCase()
+      .includes(query)
+  );
 
-    displayPoliticians(filtered);
+  displayPoliticians(filtered);
 }
 
-
+// Load the politicians list on page load
+displayPoliticians();
