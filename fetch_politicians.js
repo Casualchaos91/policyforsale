@@ -6,6 +6,8 @@ const supabase = createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpcWF4cml3YXVnenJ3d2Z1Z3BuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk3MTMzMDUsImV4cCI6MjA1NTI4OTMwNX0.vK_ph0SpbTFmt_qL5kBs6Rso3YcUI8Tu4ROF-JmKET0"
 );
 
+let politiciansCache = []; // Global cache to store fetched politicians
+
 async function fetchPoliticians() {
   let { data, error } = await supabase
     .from("politicians")
@@ -16,6 +18,7 @@ async function fetchPoliticians() {
     return [];
   }
 
+  politiciansCache = data; // Store fetched data globally
   return data;
 }
 
@@ -46,11 +49,9 @@ async function displayPoliticians(politicians = null) {
   });
 }
 
-async function searchPoliticians() {
+function searchPoliticians() {
   const query = document.getElementById("searchBar").value.toLowerCase();
-  const politicians = await fetchPoliticians();
-
-  const filtered = politicians.filter((p) =>
+  const filtered = politiciansCache.filter((p) =>
     [p.name, p.state, p.party, p.industry, p.donations, p.vote_record]
       .join(" ")
       .toLowerCase()
@@ -60,5 +61,5 @@ async function searchPoliticians() {
   displayPoliticians(filtered);
 }
 
-// Load the politicians list on page load
-displayPoliticians();
+// Load politicians on page load
+fetchPoliticians().then(displayPoliticians);
