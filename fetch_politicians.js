@@ -44,8 +44,10 @@ async function displayPoliticians() {
   });
 }
 
-function searchPoliticians() {
+async function searchPoliticians() {
     const query = document.getElementById("searchBar").value.toLowerCase();
+    const politicians = await fetchPoliticians(); // Fetch politicians before filtering
+
     const filtered = politicians.filter(p => 
         p.name.toLowerCase().includes(query) ||
         p.state.toLowerCase().includes(query) ||
@@ -54,6 +56,8 @@ function searchPoliticians() {
         p.donations.toLowerCase().includes(query) ||
         p.vote_record.toLowerCase().includes(query)
     );
+
     displayPoliticians(filtered);
 }
+
 
