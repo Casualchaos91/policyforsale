@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Policy For Sale</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #e8f5e9; /* Light green background */
+            color: #1b5e20; /* Dark green text */
+        }
+        h1 {
+            text-align: center;
+            color: #2e7d32;
+        }
+        .search-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            width: 50%;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #388e3c; /* Green border */
+            border-radius: 5px;
+        }
+        .politician-list {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .politician {
+            border-bottom: 1px solid #ddd;
+            padding: 15px 0;
+        }
+        .politician:last-child {
+            border-bottom: none;
+        }
+        .politician h2 {
+            margin: 0;
+            color: #1b5e20;
+            cursor: pointer;
+        }
+        .politician h2:hover {
+            text-decoration: underline;
+        }
+        .politician p {
+            margin: 5px 0;
+            color: #388e3c;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Policy For Sale</h1>
+    <div class="search-container">
+        <input type="text" id="searchBar" placeholder="Search for a politician..." onkeyup="searchPoliticians()">
+    </div>
+
+    <div class="politician-list" id="politicianList">
+        <!-- Politician data will be inserted here -->
+    </div>
+
+    <div class="donation-container">
+        <h2>Support This Project</h2>
+        <p>This website is independent and relies on community support. Help us expose corruption by donating cryptocurrency.</p>
+        <h3>Accepted Cryptocurrencies:</h3>
+        <ul>
+            <li><strong>Bitcoin (BTC):</strong> <button class="crypto-button" onclick="copyToClipboard('38xQ8wPaXkHDvr8Zta6RzKcUQ2hxEKT6CV')">Copy Address</button></li>
+            <li><strong>Ethereum (ETH):</strong> <button class="crypto-button" onclick="copyToClipboard('0x549c1cDA2c7EcA5ce9c58d5Bef6d4A33fb6e4e29')">Copy Address</button></li>
+            <li><strong>Avalanche (AVAX):</strong> <button class="crypto-button" onclick="copyToClipboard('0x6D8cA87aC19E450eeDCDb1dc6FFf67123EbE85Af')">Copy Address</button></li>
+            <li><strong>Gnosis (GNO):</strong> <button class="crypto-button" onclick="copyToClipboard('0x0946956C3bbC2C93ea3EF7Fd2c1F92a49Aef3a3D')">Copy Address</button></li>
+            <li><strong>Quant (QNT):</strong> <button class="crypto-button" onclick="copyToClipboard('0x37F80A11b96F46C5Ba2D03A0FfCda89174F6B4FC')">Copy Address</button></li>
+        </ul>
+        <p>Every donation helps keep this project alive and growing. Thank you for your support!</p>
+    </div>
+
+    <script>
+        const politicians = [
+            {
+                "name": "Gov. Ron DeSantis",
+                "state": "FL",
+                "party": "Republican",
+                "donations": "Received $1 million from Trish Duggan, a prominent Scientologist, to oppose marijuana legalization.",
+                "record": "Actively campaigned against Amendment 3, which sought to legalize recreational marijuana in Florida.",
+                "source": "https://www.orlandoweekly.com/news/scientologist-megadonor-gives-1-million-to-desantis-pac-fighting-florida-abortion-marijuana-amendments-37752791"
+            },
+            {
+                "name": "Rep. Andy Harris",
+                "state": "MD",
+                "party": "Republican",
+                "donations": "Supported by pharmaceutical companies opposing marijuana legalization.",
+                "record": "Led efforts in Congress to block D.C.'s marijuana decriminalization.",
+                "source": "https://en.wikipedia.org/wiki/Andy_Harris_(politician)"
+            },
+            {
+                "name": "Rep. Henry Cuellar",
+                "state": "TX",
+                "party": "Democrat",
+                "donations": "Received contributions from private prison industry.",
+                "record": "Voted against the Marijuana Opportunity Reinvestment and Expungement (MORE) Act.",
+                "source": "https://www.texastribune.org/2022/04/01/henry-cuellar-marijuana-legalization/"
+            },
+            {
+                "name": "Rep. Lamar Smith",
+                "state": "TX",
+                "party": "Republican",
+                "donations": "Backed by law enforcement associations.",
+                "record": "Blocked consideration of the Ending Federal Marijuana Prohibition Act of 2011.",
+                "source": "https://en.wikipedia.org/wiki/Lamar_Smith"
+            },
+            {
+                "name": "Rep. Darrell Issa",
+                "state": "CA",
+                "party": "Republican",
+                "donations": "Supported by conservative advocacy groups.",
+                "record": "Voted against amendments to protect state marijuana laws from federal interference.",
+                "source": "https://en.wikipedia.org/wiki/Darrell_Issa"
+            }
+        ];
+
+        function displayPoliticians(filteredPoliticians = politicians) {
+            const list = document.getElementById("politicianList");
+            list.innerHTML = "";
+            filteredPoliticians.forEach(politician => {
+                list.innerHTML += `
+                    <div class="politician">
+                        <h2 onclick="window.open('${politician.source}', '_blank')">${politician.name} (${politician.state}) - ${politician.party}</h2>
+                        <p><strong>Donations:</strong> ${politician.donations}</p>
+                        <p><strong>Voting Record:</strong> ${politician.record}</p>
+                    </div>
+                `;
+            });
+        }
+
+        function searchPoliticians() {
+            const query = document.getElementById("searchBar").value.toLowerCase();
+            const filtered = politicians.filter(p => 
+                p.name.toLowerCase().includes(query) ||
+                p.state.toLowerCase().includes(query) ||
+                p.party.toLowerCase().includes(query)
+            );
+            displayPoliticians(filtered);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied to clipboard: " + text);
+            });
+        }
+
+        displayPoliticians();  // Load initial list
+    </script>
+
+</body>
+</html>
