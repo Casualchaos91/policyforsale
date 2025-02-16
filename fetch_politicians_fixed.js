@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js";
 // Initialize Supabase client with corrected API key
 const supabase = createClient(
   "https://uiqaxriwaugzrwwfugpn.supabase.co",
-  "YOUR_CORRECT_SUPABASE_ANON_KEY"
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpcWF4cml3YXVnenJ3d2Z1Z3BuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk3MTMzMDUsImV4cCI6MjA1NTI4OTMwNX0.vK_ph0SpbTFmt_qL5kBs6Rso3YcUI8Tu4ROF-JmKET0"
 );
 
 async function fetchPoliticians() {
