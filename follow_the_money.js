@@ -8,53 +8,69 @@ const supabase = createClient(
 
 // Fetch politicians data
 async function fetchPoliticians() {
-  let { data, error } = await supabase.from('politicians').select('*');
-  if (error) {
-    console.error("Error fetching politicians:", error);
-    return [];
-  }
-  return data;
+    let { data, error } = await supabase.from('politicians').select('*');
+    if (error) {
+        console.error("Error fetching politicians:", error);
+        return [];
+    }
+    return data;
 }
 
 // Fetch donations data
 async function fetchDonations() {
-  let { data, error } = await supabase.from('donations').select('*');
-  if (error) {
-    console.error("Error fetching donations:", error);
-    return [];
-  }
-  return data;
+    let { data, error } = await supabase.from('donations').select('*');
+    if (error) {
+        console.error("Error fetching donations:", error);
+        return [];
+    }
+    return data;
 }
 
 // Display politicians with donation info
 async function displayPoliticians() {
-  const list = document.getElementById("politicianList");
-  list.innerHTML = "";
+    const list = document.getElementById("politicianList");
+    list.innerHTML = "";
 
-  const politicians = await fetchPoliticians();
-  const donations = await fetchDonations();
+    const politicians = await fetchPoliticians();
+    const donations = await fetchDonations();
 
-  if (politicians.length === 0) {
-    list.innerHTML = "<p>No politicians found.</p>";
-    return;
-  }
+    if (politicians.length === 0) {
+        list.innerHTML = "<p>No politicians found.</p>";
+        return;
+    }
 
-  politicians.forEach(politician => {
-    const relatedDonations = donations.filter(d => d.politician_id === politician.id);
-    let donationHTML = relatedDonations.map(d => `
-      <p><strong>${d.industry}:</strong> $${d.amount.toLocaleString()} from ${d.donor_name} (<a href='${d.source_url}' target='_blank'>source</a>)</p>
-    `).join('');
+    // Create a map for donations grouped by politician ID
+    const donationMap = {};
+    donations.forEach(d => {
+        if (!donationMap[d.politician_id]) {
+            donationMap[d.politician_id] = [];
+        }
+        donationMap[d.politician_id].push(d);
+    });
 
-    list.innerHTML += `
-      <div class="politician">
-        <h2 onclick="window.open('${politician.source_url}', '_blank')">
-          ${politician.name} (${politician.state}) - ${politician.party}
-        </h2>
-        <p><strong>Donations:</strong></p>
-        ${donationHTML || "<p>No recorded donations.</p>"}
-      </div>
-    `;
-  });
+    // Loop through politicians and match donations correctly
+    politicians.forEach(politician => {
+        const relatedDonations = donationMap[politician.id] || [];
+
+        let donationHTML = relatedDonations.length > 0
+            ? relatedDonations.map(d => `
+                <p><strong>${d.industry}:</strong> $${d.amount.toLocaleString()} from ${d.donor_name} 
+                (<a href='${d.source_url}' target='_blank'>source</a>)</p>
+              `).join('')
+            : "<p>No recorded donations.</p>";
+
+        list.innerHTML += `
+            <div class="politician">
+                <h2 onclick="window.open('${politician.source_url}', '_blank')">
+                    ${politician.name} (${politician.state}) - ${politician.party}
+                </h2>
+                <p><strong>Donations:</strong></p>
+                ${donationHTML}
+            </div>
+        `;
+    });
 }
 
+// Load politicians on page load
 displayPoliticians();
+
