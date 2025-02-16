@@ -44,4 +44,16 @@ async function displayPoliticians() {
   });
 }
 
-displayPoliticians();
+function searchPoliticians() {
+    const query = document.getElementById("searchBar").value.toLowerCase();
+    const filtered = politicians.filter(p => 
+        p.name.toLowerCase().includes(query) ||
+        p.state.toLowerCase().includes(query) ||
+        p.party.toLowerCase().includes(query) ||
+        p.industry.toLowerCase().includes(query) ||
+        p.donations.toLowerCase().includes(query) ||
+        p.vote_record.toLowerCase().includes(query)
+    );
+    displayPoliticians(filtered);
+}
+
