@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PolicyForSale - Exposing Political Influence</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/script.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dark-mode">
+    <header>
+        <h1>PolicyForSale.com</h1>
+        <p>Tracking money in politics and exposing policy influence.</p>
+    </header>
+
+    <section id="politicians">
+        <h2>Politicians & Their Donations</h2>
+        <table>
+            <tr>
+                <th>Politician</th>
+                <th>Industry Influence</th>
+                <th>Amount Received</th>
+                <th>Details</th>
+            </tr>
+            <tr><td>Ron DeSantis</td><td>Anti-Marijuana</td><td>$2.5M</td><td><a href="https://www.orlandosentinel.com">View More</a></td></tr>
+            <tr><td>Henry Cuellar</td><td>Private Prisons</td><td>$1.8M</td><td><a href="https://www.texastribune.org">View More</a></td></tr>
+            <tr><td>Marsha Blackburn</td><td>Private Prisons</td><td>$1.6M</td><td><a href="https://www.tennessean.com">View More</a></td></tr>
+            <tr><td>Kevin McCarthy</td><td>Alcohol & Tobacco</td><td>$1.2M</td><td><a href="https://www.latimes.com">View More</a></td></tr>
+            <tr><td>Chuck Schumer</td><td>Big Pharma</td><td>$2.2M</td><td><a href="https://www.propublica.org">View More</a></td></tr>
+            <tr><td>Joe Manchin</td><td>Fossil Fuels</td><td>$3.5M</td><td><a href="https://www.washingtonpost.com">View More</a></td></tr>
+            <tr><td>Kyrsten Sinema</td><td>Big Pharma</td><td>$1.7M</td><td><a href="https://www.azcentral.com">View More</a></td></tr>
+            <tr><td>Josh Hawley</td><td>Defense Industry</td><td>$1.4M</td><td><a href="https://www.kansascity.com">View More</a></td></tr>
+            <tr><td>Richard Burr</td><td>Healthcare</td><td>$2.8M</td><td><a href="https://www.charlotteobserver.com">View More</a></td></tr>
+        </table>
+    </section>
+
+    <section id="chart-container">
+        <h2>Donation Breakdown by Industry</h2>
+        <canvas id="donationChart"></canvas>
+    </section>
+
+    <section id="donation-links">
+        <h2>Support Transparency</h2>
+        <p>Consider donating to this self-funded project of political transparency.</p>
+        <div class="crypto-donation-container">
+            <div class="crypto-donation">
+                <img src="/images/ethereum-logo.png" alt="Ethereum" class="crypto-logo"> 
+                <input type="text" value="0x549c1cDA2c7EcA5ce9c58d5Bef6d4A33fb6e4e29" readonly>
+                <button onclick="copyToClipboard(this)">Copy</button>
+            </div>
+            <div class="crypto-donation">
+                <img src="/images/gnosis-logo.png" alt="Gnosis" class="crypto-logo"> 
+                <input type="text" value="0x0946956C3bbC2C93ea3EF7Fd2c1F92a49Aef3a3D" readonly>
+                <button onclick="copyToClipboard(this)">Copy</button>
+            </div>
+            <div class="crypto-donation">
+                <img src="/images/quant-logo.png" alt="Quant" class="crypto-logo"> 
+                <input type="text" value="0x37F80A11b96F46C5Ba2D03A0FfCda89174F6B4FC" readonly>
+                <button onclick="copyToClipboard(this)">Copy</button>
+            </div>
+            <div class="crypto-donation">
+                <img src="/images/avalanche-logo.png" alt="Avalanche" class="crypto-logo"> 
+                <input type="text" value="0x6D8cA87aC19E450eeDCDb1dc6FFf67123EbE85Af" readonly>
+                <button onclick="copyToClipboard(this)">Copy</button>
+            </div>
+            <div class="crypto-donation">
+                <img src="/images/bitcoin-logo.png" alt="Bitcoin" class="crypto-logo"> 
+                <input type="text" value="38xQ8wPaXkHDvr8Zta6RzKcUQ2hxEKT6CV" readonly>
+                <button onclick="copyToClipboard(this)">Copy</button>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
