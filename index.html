@@ -5,22 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Policy For Sale</title>
     <link rel="stylesheet" href="styles.css">
-    <script>
-        async function fetchDonations() {
-            try {
-                const response = await fetch('donations.json');
-                const data = await response.json();
-                document.getElementById('big-pharma').innerText = data['Big Pharma'] || 'N/A';
-                document.getElementById('tobacco-alcohol').innerText = data['Tobacco & Alcohol'] || 'N/A';
-                document.getElementById('environmental').innerText = data['Environmental'] || 'N/A';
-                document.getElementById('private-prisons').innerText = data['Private Prisons'] || 'N/A';
-            } catch (error) {
-                console.error("Error loading donation data:", error);
-            }
-        }
-        
-        window.onload = fetchDonations;
-    </script>
 </head>
 <body>
     <header>
@@ -35,32 +19,6 @@
 
     <section id="mission">
         <h2>Are we having fun yet?</h2>
-    </section>
-
-    <section>
-        <h2>Donation Breakdown</h2>
-        <table>
-            <tr>
-                <th>Industry</th>
-                <th>Amount Donated</th>
-            </tr>
-            <tr>
-                <td>Big Pharma</td>
-                <td id="big-pharma">Loading...</td>
-            </tr>
-            <tr>
-                <td>Tobacco & Alcohol</td>
-                <td id="tobacco-alcohol">Loading...</td>
-            </tr>
-            <tr>
-                <td>Environmental</td>
-                <td id="environmental">Loading...</td>
-            </tr>
-            <tr>
-                <td>Private Prisons</td>
-                <td id="private-prisons">Loading...</td>
-            </tr>
-        </table>
     </section>
     
     <section id="donate">
