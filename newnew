@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Policy For Sale</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script>
+        function copyToClipboard(address) {
+            navigator.clipboard.writeText(address).then(() => {
+                alert('Address copied to clipboard!');
+            }).catch(err => {
+                console.error('Error copying address:', err);
+            });
+        }
+
+        function updateProgress() {
+            const bribeAmount = 50000000; // Total bribes received ($50M example)
+            const donationAmount = 25000; // Total donations received ($25K example)
+            const bribeProgress = (donationAmount / bribeAmount) * 100;
+            document.getElementById('bribe-bar').style.width = '100%';
+            document.getElementById('donation-bar').style.width = bribeProgress + '%';
+            document.getElementById('bribe-amount').innerText = `$${bribeAmount.toLocaleString()}`;
+            document.getElementById('donation-amount').innerText = `$${donationAmount.toLocaleString()}`;
+        }
+
+        window.onload = updateProgress;
+    </script>
+    <style>
+        .progress-container {
+            width: 100%;
+            background-color: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .progress-bar {
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+            color: white;
+            font-weight: bold;
+        }
+        .bribe-bar {
+            background-color: red;
+        }
+        .donation-bar {
+            background-color: green;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Policy For Sale</h1>
+        <nav>
+            <ul>
+                <li><a href="#about">About</a></li>
+                <li><a href="#mission">Mission</a></li>
+                <li><a href="#donate">Donate</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="#politicians">Politicians</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="about">
+        <h2>About Us</h2>
+    </section>
+
+    <section id="donate">
+        <h2>Support Our Cause</h2>
+        <p>Donate using cryptocurrency to support our work.</p>
+        <div class="crypto-container">
+            <div class="crypto-box">
+                <img src="./images/Bitcoin.svg.png" alt="Bitcoin" width="50">
+                <h3>Bitcoin</h3>
+                <button onclick="copyToClipboard('38xQ8wPaXkHDvr8Zta6RzKcUQ2hxEKT6CV')">Copy Address</button>
+            </div>
+            <div class="crypto-box">
+                <img src="./images/ethereum-logo.jpg" alt="Ethereum" width="50">
+                <h3>Ethereum</h3>
+                <button onclick="copyToClipboard('0x549c1cDA2c7EcA5ce9c58d5Bef6d4A33fb6e4e29')">Copy Address</button>
+            </div>
+            <div class="crypto-box">
+                <img src="./images/gnosis-logo-png_seeklogo-444543.png" alt="Gnosis" width="50">
+                <h3>Gnosis</h3>
+                <button onclick="copyToClipboard('0x0946956C3bbC2C93ea3EF7Fd2c1F92a49Aef3a3D')">Copy Address</button>
+            </div>
+            <div class="crypto-box">
+                <img src="./images/quant-qnt-logo-red.png" alt="Quant" width="50">
+                <h3>Quant</h3>
+                <button onclick="copyToClipboard('0x37F80A11b96F46C5Ba2D03A0FfCda89174F6B4FC')">Copy Address</button>
+            </div>
+            <div class="crypto-box">
+                <img src="./images/Avalanche_logo_without_text.png" alt="Avalanche" width="50">
+                <h3>Avalanche</h3>
+                <button onclick="copyToClipboard('0x6D8cA87aC19E450eeDCDb1dc6FFf67123EbE85Af')">Copy Address</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="politicians">
+        <h2>Bribes vs. Donations</h2>
+        <p>Politicians have received <span id="bribe-amount"></span> in bribes, while we've raised <span id="donation-amount"></span> to expose them.</p>
+        <div class="progress-container">
+            <div id="bribe-bar" class="progress-bar bribe-bar">Bribes</div>
+        </div>
+        <div class="progress-container">
+            <div id="donation-bar" class="progress-bar donation-bar">Donations</div>
+        </div>
+    </section>
+
+    <section id="contact">
+        <h2>Contact Us</h2>
+        <p>Email: <a href="mailto:info@policyforsale.com">info@policyforsale.com</a></p>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Policy For Sale. All rights reserved.</p>
+    </footer>
+</body>
+</html>
