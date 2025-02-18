@@ -13,9 +13,12 @@ SOURCES = {
 # Function to scrape donation data
 def scrape_donations():
     donation_data = {}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
     
     for industry, url in SOURCES.items():
-        response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+        response = requests.get(url, headers=headers)
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
             amount = extract_donation_amount(soup)
