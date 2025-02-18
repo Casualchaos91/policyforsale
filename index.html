@@ -12,12 +12,16 @@
         
         function flipCoin() {
             const result = Math.random() < 0.5 ? 'Bitcoin' : 'Doge';
-            document.getElementById('coinResult').innerText = `You flipped: ${result}`;
+            const coinElement = document.getElementById('coinResult');
+            coinElement.innerText = `You flipped: ${result}`;
+            animateResult(coinElement);
         }
         
         function rollDice() {
             const result = Math.floor(Math.random() * 6) + 1;
-            document.getElementById('diceResult').innerText = `You rolled: ${result}`;
+            const diceElement = document.getElementById('diceResult');
+            diceElement.innerText = `You rolled: ${result}`;
+            animateResult(diceElement);
         }
         
         function drawCard() {
@@ -25,7 +29,17 @@
             const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace'];
             const suit = suits[Math.floor(Math.random() * suits.length)];
             const value = values[Math.floor(Math.random() * values.length)];
-            document.getElementById('cardResult').innerText = `You drew: ${value} of ${suit}`;
+            const cardElement = document.getElementById('cardResult');
+            cardElement.innerText = `You drew: ${value} of ${suit}`;
+            animateResult(cardElement);
+        }
+
+        function animateResult(element) {
+            element.style.transition = 'transform 0.3s ease-in-out';
+            element.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                element.style.transform = 'scale(1)';
+            }, 300);
         }
     </script>
     <style>
@@ -41,6 +55,11 @@
             margin: 10px;
             padding: 10px 20px;
             font-size: 16px;
+        }
+        .game-container p {
+            font-size: 20px;
+            font-weight: bold;
+            transition: transform 0.3s ease-in-out;
         }
     </style>
 </head>
