@@ -9,11 +9,38 @@
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
         }
+        
+        function flipCoin() {
+            const result = Math.random() < 0.5 ? 'Bitcoin' : 'Doge';
+            document.getElementById('coinResult').innerText = `You flipped: ${result}`;
+        }
+        
+        function rollDice() {
+            const result = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('diceResult').innerText = `You rolled: ${result}`;
+        }
+        
+        function drawCard() {
+            const suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades'];
+            const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace'];
+            const suit = suits[Math.floor(Math.random() * suits.length)];
+            const value = values[Math.floor(Math.random() * values.length)];
+            document.getElementById('cardResult').innerText = `You drew: ${value} of ${suit}`;
+        }
     </script>
     <style>
         .dark-mode {
             background-color: #121212;
             color: #ffffff;
+        }
+        .game-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .game-container button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -27,6 +54,16 @@
             </ul>
         </nav>
     </header>
+    
+    <section class="game-container">
+        <h2>Games of Chance</h2>
+        <button onclick="flipCoin()">Flip a Coin</button>
+        <p id="coinResult">Flip to see if it's Bitcoin or Doge!</p>
+        <button onclick="rollDice()">Roll a Dice</button>
+        <p id="diceResult">Roll the dice to see your number!</p>
+        <button onclick="drawCard()">Draw a Card</button>
+        <p id="cardResult">Draw a random card from a deck!</p>
+    </section>
     
     <section id="donate">
         <h2>Support Our Cause</h2>
