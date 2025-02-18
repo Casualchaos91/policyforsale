@@ -14,58 +14,21 @@
                 console.error('Error copying address:', err);
             });
         }
-
-        function updateProgress() {
-            const bribeAmount = 50000000; // Total bribes received ($50M example)
-            const donationAmount = 25000; // Total donations received ($25K example)
-            const bribeProgress = (donationAmount / bribeAmount) * 100;
-            document.getElementById('bribe-bar').style.width = '100%';
-            document.getElementById('donation-bar').style.width = bribeProgress + '%';
-            document.getElementById('bribe-amount').innerText = `$${bribeAmount.toLocaleString()}`;
-            document.getElementById('donation-amount').innerText = `$${donationAmount.toLocaleString()}`;
-        }
-
-        window.onload = updateProgress;
     </script>
-    <style>
-        .progress-container {
-            width: 100%;
-            background-color: #eee;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-        .progress-bar {
-            height: 30px;
-            text-align: center;
-            line-height: 30px;
-            color: white;
-            font-weight: bold;
-        }
-        .bribe-bar {
-            background-color: red;
-        }
-        .donation-bar {
-            background-color: green;
-        }
-    </style>
 </head>
 <body>
     <header>
         <h1>Policy For Sale</h1>
         <nav>
             <ul>
-                <li><a href="#about">About</a></li>
                 <li><a href="#mission">Mission</a></li>
                 <li><a href="#donate">Donate</a></li>
-                <li><a href="#contact">Contact</a></li>
-                <li><a href="#politicians">Politicians</a></li>
             </ul>
         </nav>
     </header>
 
-    <section id="about">
-        <h2>About Us</h2>
+    <section id="mission">
+        <h2>Are we having fun yet?</h2>
     </section>
 
     <section id="donate">
@@ -98,22 +61,6 @@
                 <button onclick="copyToClipboard('0x6D8cA87aC19E450eeDCDb1dc6FFf67123EbE85Af')">Copy Address</button>
             </div>
         </div>
-    </section>
-
-    <section id="politicians">
-        <h2>Bribes vs. Donations</h2>
-        <p>Politicians have received <span id="bribe-amount"></span> in bribes, while we've raised <span id="donation-amount"></span> to expose them.</p>
-        <div class="progress-container">
-            <div id="bribe-bar" class="progress-bar bribe-bar">Bribes</div>
-        </div>
-        <div class="progress-container">
-            <div id="donation-bar" class="progress-bar donation-bar">Donations</div>
-        </div>
-    </section>
-
-    <section id="contact">
-        <h2>Contact Us</h2>
-        <p>Email: <a href="mailto:info@policyforsale.com">info@policyforsale.com</a></p>
     </section>
 
     <footer>
