@@ -17,11 +17,14 @@
         }
         .chart-container {
             width: 80%;
+            max-width: 600px;
             margin: auto;
             text-align: center;
+            position: relative;
         }
         canvas {
             max-width: 100%;
+            height: 300px !important;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -107,7 +110,12 @@
                     },
                     options: {
                         responsive: true,
-                        maintainAspectRatio: false
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
                     }
                 });
             } else {
