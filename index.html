@@ -15,19 +15,7 @@
             background-color: #121212;
             color: #ffffff;
         }
-        .chart-container {
-            width: 80%;
-            max-width: 800px;
-            margin: auto;
-            text-align: center;
-            position: relative;
-        }
-        canvas {
-            max-width: 100%;
-            height: 400px !important;
-        }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header>
@@ -35,20 +23,10 @@
         <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
         <nav>
             <ul>
-                <li><a href="#mission">Mission</a></li>
                 <li><a href="#donate">Donate</a></li>
             </ul>
         </nav>
     </header>
-
-    <section id="mission">
-        <h2>Are we having fun yet?</h2>
-    </section>
-    
-    <section class="chart-container">
-        <h2>Crypto Market Prices (1-Week Trends)</h2>
-        <canvas id="cryptoChart"></canvas>
-    </section>
     
     <section id="donate">
         <h2>Support Our Cause</h2>
@@ -85,51 +63,5 @@
     <footer>
         <p>&copy; 2025 Policy For Sale. All rights reserved.</p>
     </footer>
-    
-    <script>
-        let chart;
-
-        async function fetchCryptoData() {
-            const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=gnosis,quant-network,avalanche-2&order=market_cap_desc&per_page=3&page=1&sparkline=true');
-            const data = await response.json();
-            updateChart(data);
-        }
-
-        function updateChart(data) {
-            const ctx = document.getElementById('cryptoChart').getContext('2d');
-            const labels = Array.from({ length: data[0].sparkline_in_7d.price.length }, (_, i) => `Day ${i + 1}`);
-            if (!chart) {
-                chart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: data.map(coin => ({
-                            label: `${coin.name} (USD)`,
-                            data: coin.sparkline_in_7d.price,
-                            borderColor: '#'+Math.floor(Math.random()*16777215).toString(16),
-                            fill: false
-                        }))
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: false
-                            }
-                        }
-                    }
-                });
-            } else {
-                chart.data.datasets.forEach((dataset, i) => {
-                    dataset.data = data[i].sparkline_in_7d.price;
-                });
-                chart.update();
-            }
-        }
-
-        fetchCryptoData();
-        setInterval(fetchCryptoData, 60000); // Update prices every 60 seconds
-    </script>
 </body>
 </html>
