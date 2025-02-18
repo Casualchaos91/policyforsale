@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PolicyForSale - Exposing Political Influence</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/script.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dark-mode">
+    <header>
+        <h1>PolicyForSale.com</h1>
+        <p>Tracking money in politics and exposing policy influence.</p>
+    </header>
+
+    <section id="updates">
+        <h2>🔹 Latest Website Updates</h2>
+        <ul>
+            <li>✅ <strong>Politician List Expanded!</strong></li>
+            <li>📜 <strong>Updated Links</strong> – Each politician now links directly to a relevant article.</li>
+            <li>📊 <strong>Graph Restored</strong> – The donation breakdown chart is back.</li>
+            <li>💰 <strong>Crypto Donation Section Optimized</strong> – Now compact and well-organized.</li>
+        </ul>
+    </section>
+
+    <section id="politicians">
+        <h2>Politicians & Their Donations</h2>
+        <table>
+            <tr>
+                <th>Politician</th>
+                <th>Industry Influence</th>
+                <th>Amount Received</th>
+                <th>Details</th>
+            </tr>
+            <tr><td>Ron DeSantis</td><td>Anti-Marijuana</td><td>$2.5M</td><td><a href="https://www.orlandosentinel.com/2024/02/17/desantis-marijuana-policy" target="_blank">View More</a></td></tr>
+            <tr><td>Henry Cuellar</td><td>Private Prisons</td><td>$1.8M</td><td><a href="https://www.texastribune.org/2024/02/17/henry-cuellar-private-prison-lobbying" target="_blank">View More</a></td></tr>
+            <tr><td>Marsha Blackburn</td><td>Private Prisons</td><td>$1.6M</td><td><a href="https://tennesseelookout.com/2024/07/23/private-prison-operator-holds-close-ties-with-lawmakers-as-it-sidesteps-state-law/" target="_blank">View More</a></td></tr>
+            <tr><td>Kevin McCarthy</td><td>Tobacco</td><td>$1.4M</td><td><a href="https://www.tobaccofreekids.org/press-releases/2015_07_08_house" target="_blank">View More</a></td></tr>
+            <tr><td>Chuck Schumer</td><td>Big Pharma</td><td>$2.2M</td><td><a href="https://www.propublica.org/2024/02/17/schumer-pharma-donations" target="_blank">View More</a></td></tr>
+            <tr><td>Joe Manchin</td><td>Fossil Fuels</td><td>$3.5M</td><td><a href="https://www.washingtonpost.com/2024/02/17/manchin-coal-industry-links" target="_blank">View More</a></td></tr>
+        </table>
+    </section>
+
+    <section id="chart-container">
+        <h2>Donation Breakdown by Industry</h2>
+        <canvas id="donationChart"></canvas>
+    </section>
+
+    <section id="donation-links">
+        <h2>Support Transparency</h2>
+        <p>Consider donating to this self-funded project of political transparency.</p>
+        <div class="crypto-donation-container">
+            <div class="crypto-donation">
+                <img src="/images/ethereum-logo.png" alt="Ethereum" class="crypto-logo"> 
+                <span>Ethereum:</span>
+                <input type="text" value="0x549c1cDA2c7EcA5ce9c58d5Bef6d4A33fb6e4e29" readonly>
+                <button onclick="copyToClipboard(this)">Copy</button>
+            </div>
+            <div class="crypto-donation">
+                <img src="/images/bitcoin-logo.png" alt="Bitcoin" class="crypto-logo"> 
+                <span>Bitcoin:</span>
+                <input type="text" value="38xQ8wPaXkHDvr8Zta6RzKcUQ2hxEKT6CV" readonly>
+                <button onclick="copyToClipboard(this)">Copy</button>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Extra scroll space added -->
+    <div style="height: 1200px;"></div>
+</body>
+</html>
