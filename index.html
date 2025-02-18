@@ -14,6 +14,13 @@
                 console.error('Error copying address:', err);
             });
         }
+        
+        function updateBribeAmount() {
+            const bribeInput = document.getElementById('bribe-input').value;
+            if (!isNaN(bribeInput) && bribeInput > 0) {
+                document.getElementById('bribe-amount').innerText = `$${Number(bribeInput).toLocaleString()}`;
+            }
+        }
     </script>
 </head>
 <body>
@@ -61,6 +68,13 @@
                 <button onclick="copyToClipboard('0x6D8cA87aC19E450eeDCDb1dc6FFf67123EbE85Af')">Copy Address</button>
             </div>
         </div>
+    </section>
+
+    <section id="admin-panel">
+        <h2>Admin Panel: Update Bribe Amount</h2>
+        <input type="number" id="bribe-input" placeholder="Enter new bribe amount" />
+        <button onclick="updateBribeAmount()">Update</button>
+        <p>Current Bribe Amount: <span id="bribe-amount">$50,000,000</span></p>
     </section>
 
     <footer>
