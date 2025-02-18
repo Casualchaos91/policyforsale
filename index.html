@@ -90,7 +90,7 @@
         let chart;
 
         async function fetchCryptoData() {
-            const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ethereum,gnosis,quant-network,avalanche-2&order=market_cap_desc&per_page=4&page=1&sparkline=true');
+            const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=gnosis,quant-network,avalanche-2&order=market_cap_desc&per_page=3&page=1&sparkline=true');
             const data = await response.json();
             updateChart(data);
         }
