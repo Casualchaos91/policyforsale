@@ -18,7 +18,7 @@ export default function Home() {
         <title>Policy For Sale</title>
         <meta name="description" content="Exposing Political Corruption Worldwide" />
       </Head>
-      
+
       <nav className="w-full bg-gray-800 py-4 flex justify-center space-x-6 text-lg">
         <Link href="/" className="text-yellow-400 hover:text-yellow-300">Home</Link>
         <Link href="/news" className="text-yellow-400 hover:text-yellow-300">News</Link>
@@ -27,12 +27,12 @@ export default function Home() {
       </nav>
 
       <header className="text-center p-6">
-        <h1 className="text-5xl font-extrabold text-yellow-400 drop-shadow-lg">Policy For Sale</h1>
+        <h1 className="text-red-500 text-4xl">TEST TAILWIND</h1>
         <p className="text-lg text-gray-300 mt-2 max-w-2xl">
           Tracking political influence and corruption globally. Stay informed with real-time updates.
         </p>
       </header>
-      
+
       <section className="mt-6 w-full max-w-2xl">
         <h2 className="text-2xl font-bold text-yellow-400 mb-4">Latest Corruption News</h2>
         <ul>
@@ -45,7 +45,7 @@ export default function Home() {
           ))}
         </ul>
       </section>
-      
+
       <Link href="/donate" className="mt-6 px-6 py-3 bg-yellow-500 text-black font-semibold rounded-lg shadow-md hover:bg-yellow-600 transition">
         Donate with Crypto
       </Link>
