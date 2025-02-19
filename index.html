@@ -70,12 +70,20 @@
     </style>
 </head>
 <body>
-    <section class="game-container" style="display: flex; justify-content: space-evenly; align-items: center; gap: 30px; flex-wrap: wrap; max-width: 900px; margin: auto; text-align: center; padding: 20px;">
+    <section class="game-container" style="display: flex; justify-content: center; align-items: center; gap: 40px; flex-wrap: wrap; max-width: 900px; margin: auto; text-align: center; padding: 20px;">
         <h2>Games of Chance</h2>
-        <button onclick="flipCoin()" style="font-size: 24px; padding: 15px 30px;">Flip a Coin</button>
+        <div style='text-align: center; width: 200px;'>
+            <button onclick="flipCoin()" style="font-size: 24px; padding: 15px 30px;">Flip a Coin</button>
+            <img id="coinImage" src="./images/bitcoin-coin.png" alt="Coin Result" width="100">
+            <p id="coinResult" style="min-height: 30px;">Flip to see if it's Bitcoin or Doge!</p>
+        </div>
         <img id="coinImage" src="./images/bitcoin-coin.png" alt="Coin Result" width="100">
         <p id="coinResult">Flip to see if it's Bitcoin or Doge!</p>
-        <button onclick="rollDice()" style="font-size: 24px; padding: 15px 30px;">Roll a Dice</button>
+        <div style='text-align: center; width: 200px;'>
+            <button onclick="rollDice()" style="font-size: 24px; padding: 15px 30px;">Roll a Dice</button>
+            <img id="diceImage" src="./images/dice-1.png" alt="Dice Result" width="100">
+            <p id="diceResult" style="min-height: 30px;">Roll the dice to see your number!</p>
+        </div>
         <img id="diceImage" src="./images/dice-1.png" alt="Dice Result" width="100">
         <p id="diceResult">Roll the dice to see your number!</p>
         
