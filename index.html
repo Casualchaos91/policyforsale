@@ -49,7 +49,15 @@
                 "https://www.myjournalcourier.com/news/article/former-illinois-house-speaker-convicted-10-20163162.php",
                 "https://nypost.com/2025/02/18/us-news/doj-move-to-toss-nyc-mayor-adams-corruption-case-heads-to-court-as-judge-hints-its-not-done-deal/",
                 "https://apnews.com/article/2072b0fb7f64217915f5f2672e468332",
-                "https://www.theguardian.com/us-news/2025/feb/18/eric-adams-donald-trump-corruption-case"
+                "https://www.theguardian.com/us-news/2025/feb/18/eric-adams-donald-trump-corruption-case",
+                "https://www.reuters.com/breakingviews/xi-jinpings-graft-crackdown-is-fight-without-end-2025-02-19/",
+                "https://www.theguardian.com/world/2025/feb/18/triangle-of-death-will-italy-finally-tackle-mafias-toxic-waste-dumping",
+                "https://apnews.com/article/a003af9d9aebe89cd289361a65c9401b",
+                "https://www.news.com.au/world/north-america/us-politics/its-a-disaster-outrage-as-donald-trump-pauses-horrible-and-ridiculous-law/news-story/718b3dcc5bda1b091cbd0c0ec6fcd792",
+                "https://www.thetimes.co.uk/article/science-museum-adani-green-energy-klw203xs2",
+                "https://www.cbs8.com/article/news/local/california/newsom-corruption-favoritism-panera-breads-minimum-wage-law/509-75b451ef-dd70-4071-bb94-87c5b7d93f36",
+                "https://nypost.com/2025/01/13/us-news/gavin-newsom-cut-fire-budget-while-pouring-billions-into-climate-change-critics/",
+                "https://apnews.com/article/7421050b54579ee3f9f68b16f5824d82"
             ];
             const randomLink = corruptionLinks[Math.floor(Math.random() * corruptionLinks.length)];
             window.open(randomLink, "_blank");
@@ -63,6 +71,20 @@
     </style>
 </head>
 <body>
+    <section class="game-container">
+        <h2>Games of Chance</h2>
+        <button onclick="flipCoin()">Flip a Coin</button>
+        <img id="coinImage" src="./images/bitcoin-coin.png" alt="Coin Result" width="100">
+        <p id="coinResult">Flip to see if it's Bitcoin or Doge!</p>
+        <button onclick="rollDice()">Roll a Dice</button>
+        <img id="diceImage" src="./images/dice-1.png" alt="Dice Result" width="100">
+        <p id="diceResult">Roll the dice to see your number!</p>
+        <button onclick="drawCard()">Draw a Card</button>
+        <p id="cardResult">Draw a random card from a deck!</p>
+    </section>
+    
+    <button onclick="randomCorruption()" style="font-size: 22px; padding: 20px 40px; display: block; margin: 20px auto;">Random Corruption</button>
+    
     <section id="donate">
         <h2>Support Our Cause</h2>
         <p>Donate using cryptocurrency to support our work.</p>
@@ -77,7 +99,7 @@
                 <h3>Ethereum</h3>
                 <button onclick="copyToClipboard('0x549c1cDA2c7EcA5ce9c58d5Bef6d4A33fb6e4e29')">Copy Address</button>
             </div>
-            <div class="crypto-box">
+                    <div class="crypto-box">
                 <img src="./images/gnosis-logo-png_seeklogo-444543.png" alt="Gnosis" width="50">
                 <h3>Gnosis</h3>
                 <button onclick="copyToClipboard('0x0946956C3bbC2C93ea3EF7Fd2c1F92a49Aef3a3D')">Copy Address</button>
