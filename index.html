@@ -53,6 +53,31 @@
                 element.style.transform = 'scale(1)';
             }, 300);
         }
+        
+        function randomCorruption() {
+            const corruptionLinks = [
+                "https://nypost.com/2024/10/10/us-news/ny-dem-candidate-laura-gillen-decried-corruption-while-handing-1-5b-coliseum-contract-to-donor/",
+                "https://en.wikipedia.org/wiki/Henry_Cuellar",
+                "https://www.cnn.com/2021/04/23/politics/gaetz-probe-public-corruption-medical-marijuana/index.html",
+                "https://en.wikipedia.org/wiki/Andy_Harris_(politician)",
+                "https://www.americanprogress.org/article/big-pharma-reaps-profits-hurting-everyday-americans/",
+                "https://www.politico.com/news/2020/12/27/marijuana-legalization-corruption-450529",
+                "https://www.theguardian.com/sustainable-business/2016/oct/22/recreational-marijuana-legalization-big-business",
+                "https://www.opensecrets.org/news/2022/04/the-marijuana-industry-spent-millions-lobbying-on-legalization-in-2021/",
+                "https://www.cannabisbusinesstimes.com/legislation-and-regulation/news/15699379/who-funds-anti-cannabis-movements",
+                "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7605025/",
+                "https://www.philanthropy.com/article/can-big-donors-ever-move-the-needle-on-controversial-causes-lessons-from-the-long-marijuana-campaign",
+                "https://www.orlandoweekly.com/news/scientologist-megadonor-gives-1-million-to-desantis-pac-fighting-florida-abortion-marijuana-amendments-37752791",
+                "https://www.opensecrets.org/orgs/church-of-scientology-international/summary?id=D000048670",
+                "https://www.cato.org/policy-analysis/effect-state-marijuana-legalizations-2021-update",
+                "https://law.lclark.edu/live/files/28624-lcb233article1vitiellowebsitepdf",
+                "https://apnews.com/article/538cb5387bf95925245bf87fa6b1adcb",
+                "https://www.politico.com/news/2024/12/23/matt-gaetz-ethics-report-findings-00195875",
+                "https://www.thescottishsun.co.uk/news/14064037/matt-gaetz-lawsuit-florida-donald-trump-attorney-general/"
+            ];
+            const randomLink = corruptionLinks[Math.floor(Math.random() * corruptionLinks.length)];
+            window.open(randomLink, "_blank");
+        }
     </script>
     <style>
         .dark-mode {
@@ -84,6 +109,7 @@
     <header>
         <h1>Policy For Sale</h1>
         <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+        <button onclick="randomCorruption()">Random Corruption</button>
         <nav>
             <ul>
                 <li><a href="#donate">Donate</a></li>
