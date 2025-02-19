@@ -67,7 +67,10 @@
         body { background-color: #d4edda;
             color: #333;
         }
-    </style>
+        button:hover {
+        background-color: darkred;
+    }
+</style>
 </head>
 <body>
     <section class="game-container" style="display: flex; justify-content: center; align-items: center; gap: 40px; flex-wrap: wrap; max-width: 900px; margin: auto; text-align: center; padding: 20px;">
@@ -87,7 +90,7 @@
         
     </section>
     
-    <button onclick="randomCorruption()" style="font-size: 22px; padding: 20px 40px; display: block; margin: 20px auto; background-color: red; color: white; border: none; border-radius: 5px;">Random Corruption</button>
+    <button onclick="randomCorruption()" style="font-size: 22px; padding: 20px 40px; display: block; margin: 20px auto; background-color: red; color: black; transition: background-color 0.3s ease; border: none; border-radius: 5px; cursor: pointer;">Random Corruption</button>
     
     <section id="donate">
         <h2>Donate Crypto Here</h2>
