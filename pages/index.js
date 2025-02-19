@@ -13,7 +13,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center px-6">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center px-6 py-6">
       <Head>
         <title>Policy For Sale</title>
         <meta name="description" content="Exposing Political Corruption Worldwide" />
