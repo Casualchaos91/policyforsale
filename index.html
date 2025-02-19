@@ -1,91 +1,36 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-
-export default function PolicyForSale() {
-  const [submissions, setSubmissions] = useState([]);
-  const [input, setInput] = useState({ politician: "", donor: "", amount: "", country: "" });
-  const [filter, setFilter] = useState({ country: "", politician: "" });
-
-  const submitData = () => {
-    if (input.politician && input.donor && input.amount && input.country) {
-      setSubmissions([...submissions, input]);
-      setInput({ politician: "", donor: "", amount: "", country: "" });
-    }
-  };
-
-  const filteredSubmissions = submissions.filter(entry => 
-    (filter.country === "" || entry.country.toLowerCase().includes(filter.country.toLowerCase())) &&
-    (filter.politician === "" || entry.politician.toLowerCase().includes(filter.politician.toLowerCase()))
-  );
-
-  const aggregatedData = submissions.reduce((acc, entry) => {
-    const existing = acc.find(item => item.politician === entry.politician);
-    if (existing) {
-      existing.amount += parseFloat(entry.amount);
-    } else {
-      acc.push({ politician: entry.politician, amount: parseFloat(entry.amount) });
-    }
-    return acc;
-  }, []);
-
-  return (
-    <div className="p-6 space-y-6 max-w-4xl mx-auto text-center bg-green-100 text-black min-h-screen flex flex-col items-center">
-      <h1 className="text-4xl font-bold">Policy For Sale</h1>
-      <p className="text-lg">Tracking political donations globally.</p>
-      
-      <div className="mt-8 w-full max-w-3xl text-center">
-        <h2 className="text-2xl font-bold">Submit Political Donation Data</h2>
-        <div className="grid grid-cols-1 gap-4 text-center mt-4">
-          <Input className="text-black" placeholder="Politician's Name" value={input.politician} onChange={(e) => setInput({ ...input, politician: e.target.value })} />
-          <Input className="text-black" placeholder="Donor's Name" value={input.donor} onChange={(e) => setInput({ ...input, donor: e.target.value })} />
-          <Input className="text-black" placeholder="Donation Amount" value={input.amount} onChange={(e) => setInput({ ...input, amount: e.target.value })} />
-          <Input className="text-black" placeholder="Country" value={input.country} onChange={(e) => setInput({ ...input, country: e.target.value })} />
-          <Button onClick={submitData}>Submit</Button>
-        </div>
-      </div>
-      
-      <div className="mt-8 w-full max-w-3xl text-center">
-        <h2 className="text-2xl font-bold">Filter Submissions</h2>
-        <div className="grid grid-cols-1 gap-4 text-center mt-4">
-          <Input className="text-black" placeholder="Filter by Politician" value={filter.politician} onChange={(e) => setFilter({ ...filter, politician: e.target.value })} />
-          <Input className="text-black" placeholder="Filter by Country" value={filter.country} onChange={(e) => setFilter({ ...filter, country: e.target.value })} />
-        </div>
-      </div>
-      
-      <div className="mt-8 w-full max-w-3xl text-center">
-        <h2 className="text-2xl font-bold">Recent Submissions</h2>
-        <div className="mt-4">
-          {filteredSubmissions.length === 0 ? (
-            <p>No matching data found.</p>
-          ) : (
-            filteredSubmissions.map((entry, index) => (
-              <Card key={index} className="p-4 mb-2">
-                <CardContent>
-                  <p><strong>Politician:</strong> {entry.politician}</p>
-                  <p><strong>Donor:</strong> {entry.donor}</p>
-                  <p><strong>Amount:</strong> ${entry.amount}</p>
-                  <p><strong>Country:</strong> {entry.country}</p>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
-      </div>
-
-      <div className="mt-8 w-full max-w-3xl text-center">
-        <h2 className="text-2xl font-bold">Donation Data Visualization</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={aggregatedData}>
-            <XAxis dataKey="politician" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="amount" fill="#82ca9d" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-  );
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expose Political Corruption</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Expose Political Corruption</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="articles.html">Articles</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h2>Latest Exposés</h2>
+      <article>
+        <h3>Corruption in Local Government</h3>
+        <p>A brief summary of our latest investigation...</p>
+        <a href="article1.html">Read more</a>
+      </article>
+      <!-- Repeat for more articles -->
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2025 Expose Political Corruption. All rights reserved.</p>
+  </footer>
+</body>
+</html>
