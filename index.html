@@ -1,127 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Policy For Sale</title>
-    <link rel="stylesheet" href="styles.css">
-    <script>
-        function copyToClipboard(address) {
-            navigator.clipboard.writeText(address).then(() => {
-                alert('Address copied to clipboard!');
-            }).catch(err => {
-                console.error('Error copying address:', err);
-            });
-        }
-        
-        function flipCoin() {
-            const result = Math.random() < 0.5 ? 'Bitcoin' : 'Doge';
-            const coinElement = document.getElementById('coinResult');
-            const coinImage = document.getElementById('coinImage');
-            coinElement.innerText = `You flipped: ${result}`;
-            coinImage.src = result === 'Bitcoin' ? './images/bitcoin-coin.png' : './images/doge-coin.png';
-        }
-        
-        function rollDice() {
-            const result = Math.floor(Math.random() * 6) + 1;
-            const diceElement = document.getElementById('diceResult');
-            const diceImage = document.getElementById('diceImage');
-            diceElement.innerText = `You rolled: ${result}`;
-            diceImage.src = `./images/dice-${result}.png`;
-        }
-        
-        function drawCard() {
-            const suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades'];
-            const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace'];
-            const suit = suits[Math.floor(Math.random() * suits.length)];
-            const value = values[Math.floor(Math.random() * values.length)];
-            const cardElement = document.getElementById('cardResult');
-            cardElement.innerText = `You drew: ${value} of ${suit}`;
-        }
-        
-        function randomCorruption() {
-            const corruptionLinks = [
-                "https://nypost.com/2024/10/10/us-news/ny-dem-candidate-laura-gillen-decried-corruption-while-handing-1-5b-coliseum-contract-to-donor/",
-                "https://www.cnn.com/2021/04/23/politics/gaetz-probe-public-corruption-medical-marijuana/index.html",
-                "https://www.americanprogress.org/article/big-pharma-reaps-profits-hurting-everyday-americans/",
-                "https://www.politico.com/news/2020/12/27/marijuana-legalization-corruption-450529",
-                "https://apnews.com/article/db868e1685aefe9581fe26680f84ee58",
-                "https://www.myjournalcourier.com/news/article/former-illinois-house-speaker-convicted-10-20163162.php",
-                "https://nypost.com/2025/02/18/us-news/doj-move-to-toss-nyc-mayor-adams-corruption-case-heads-to-court-as-judge-hints-its-not-done-deal/",
-                "https://apnews.com/article/2072b0fb7f64217915f5f2672e468332",
-                "https://www.theguardian.com/us-news/2025/feb/18/eric-adams-donald-trump-corruption-case",
-                "https://www.reuters.com/breakingviews/xi-jinpings-graft-crackdown-is-fight-without-end-2025-02-19/",
-                "https://www.theguardian.com/world/2025/feb/18/triangle-of-death-will-italy-finally-tackle-mafias-toxic-waste-dumping",
-                "https://apnews.com/article/a003af9d9aebe89cd289361a65c9401b",
-                "https://www.news.com.au/world/north-america/us-politics/its-a-disaster-outrage-as-donald-trump-pauses-horrible-and-ridiculous-law/news-story/718b3dcc5bda1b091cbd0c0ec6fcd792",
-                "https://www.thetimes.co.uk/article/science-museum-adani-green-energy-klw203xs2",
-                "https://www.cbs8.com/article/news/local/california/newsom-corruption-favoritism-panera-breads-minimum-wage-law/509-75b451ef-dd70-4071-bb94-87c5b7d93f36",
-                "https://nypost.com/2025/01/13/us-news/gavin-newsom-cut-fire-budget-while-pouring-billions-into-climate-change-critics/",
-                "https://apnews.com/article/7421050b54579ee3f9f68b16f5824d82"
-            ];
-            const randomLink = corruptionLinks[Math.floor(Math.random() * corruptionLinks.length)];
-            window.open(randomLink, "_blank");
-        }
-    </script>
-    <style>
-        body { background-color: #d4edda;
-            color: #333;
-        }
-        button:hover {
-        background-color: darkred;
+import { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { motion } from "framer-motion";
+
+export default function AnonymousChatRoom() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetch("/api/getMessages")
+        .then((res) => res.json())
+        .then((data) => setMessages(data));
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const sendMessage = () => {
+    if (input.trim()) {
+      fetch("/api/sendMessage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: input }),
+      }).then(() => {
+        setInput("");
+      });
     }
-</style>
-</head>
-<body>
-    <section class="game-container" style="display: flex; justify-content: center; align-items: center; gap: 40px; flex-wrap: wrap; max-width: 900px; margin: auto; text-align: center; padding: 20px;">
-        <h2>Games of Chance</h2>
-        <div style='text-align: center; width: 200px;'>
-            <button onclick="flipCoin()" style="font-size: 24px; padding: 15px 30px;">Flip a Coin</button>
-            <img id="coinImage" src="./images/bitcoin-coin.png" alt="Coin Result" width="100">
-            <p id="coinResult" style="min-height: 30px;">Flip to see if it's Bitcoin or Doge!</p>
+  };
+
+  const copyToClipboard = (address) => {
+    navigator.clipboard.writeText(address).then(() => {
+      alert('Address copied to clipboard!');
+    }).catch(err => {
+      console.error('Error copying address:', err);
+    });
+  };
+
+  const corruptionLinks = [
+    "https://nypost.com/2024/10/10/us-news/ny-dem-candidate-laura-gillen-decried-corruption-while-handing-1-5b-coliseum-contract-to-donor/",
+    "https://www.cnn.com/2021/04/23/politics/gaetz-probe-public-corruption-medical-marijuana/index.html",
+    "https://www.americanprogress.org/article/big-pharma-reaps-profits-hurting-everyday-americans/",
+    "https://www.politico.com/news/2020/12/27/marijuana-legalization-corruption-450529",
+    "https://apnews.com/article/db868e1685aefe9581fe26680f84ee58"
+  ];
+
+  const randomCorruption = () => {
+    const randomLink = corruptionLinks[Math.floor(Math.random() * corruptionLinks.length)];
+    window.open(randomLink, "_blank");
+  };
+
+  return (
+    <div className="p-6 space-y-6 max-w-3xl mx-auto text-center">
+      <h1 className="text-3xl font-bold">Anonymous Chatroom</h1>
+      <p className="text-gray-600">Say anything. No usernames. No tracking.</p>
+      
+      <div className="h-80 overflow-y-auto border p-4 rounded">
+        {messages.map((msg, index) => (
+          <motion.div key={index} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <Card className="mb-2 p-2">
+              <CardContent>{msg.text}</CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+      
+      <div className="mt-6 flex gap-2">
+        <Input 
+          className="flex-grow" 
+          placeholder="Type something..." 
+          value={input} 
+          onChange={(e) => setInput(e.target.value)} 
+        />
+        <Button onClick={sendMessage}>Send</Button>
+      </div>
+      
+      <div className="mt-8">
+        <h2 className="text-xl font-bold">Support the Chat - Donate Crypto</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+          {[
+            { name: "Bitcoin", address: "38xQ8wPaXkHDvr8Zta6RzKcUQ2hxEKT6CV", img: "/images/Bitcoin.svg.png" },
+            { name: "Ethereum", address: "0x549c1cDA2c7EcA5ce9c58d5Bef6d4A33fb6e4e29", img: "/images/ethereum-logo.jpg" },
+            { name: "Gnosis", address: "0x0946956C3bbC2C93ea3EF7Fd2c1F92a49Aef3a3D", img: "/images/gnosis-logo-png_seeklogo-444543.png" },
+            { name: "Quant", address: "0x37F80A11b96F46C5Ba2D03A0FfCda89174F6B4FC", img: "/images/quant-qnt-logo-red.png" },
+            { name: "Avalanche", address: "0x6D8cA87aC19E450eeDCDb1dc6FFf67123EbE85Af", img: "/images/Avalanche_logo_without_text.png" }
+          ].map((crypto, index) => (
+            <div key={index} className="text-center">
+              <img src={crypto.img} alt={crypto.name} width="50" className="mx-auto" />
+              <p>{crypto.name}</p>
+              <Button onClick={() => copyToClipboard(crypto.address)}>Copy Address</Button>
+            </div>
+          ))}
         </div>
-        
-        <div style='text-align: center; width: 200px;'>
-            <button onclick="rollDice()" style="font-size: 24px; padding: 15px 30px;">Roll a Dice</button>
-            <img id="diceImage" src="./images/dice-1.png" alt="Dice Result" width="100">
-            <p id="diceResult" style="min-height: 30px;">Roll the dice to see your number!</p>
-        </div>
-        
-        
-    </section>
-    
-    <button onclick="randomCorruption()" style="font-size: 22px; padding: 20px 40px; display: block; margin: 20px auto; background-color: red; color: black; transition: background-color 0.3s ease; border: none; border-radius: 5px; cursor: pointer;">Random Corruption</button>
-    
-    <section id="donate">
-        <h2>Donate Crypto Here</h2>
-        
-        <div class="crypto-container">
-            <div class="crypto-box">
-                <img src="./images/Bitcoin.svg.png" alt="Bitcoin" width="50">
-                <h3>Bitcoin</h3>
-                <button onclick="copyToClipboard('38xQ8wPaXkHDvr8Zta6RzKcUQ2hxEKT6CV')">Copy Address</button>
-            </div>
-            <div class="crypto-box">
-                <img src="./images/ethereum-logo.jpg" alt="Ethereum" width="50">
-                <h3>Ethereum</h3>
-                <button onclick="copyToClipboard('0x549c1cDA2c7EcA5ce9c58d5Bef6d4A33fb6e4e29')">Copy Address</button>
-            </div>
-                    <div class="crypto-box">
-                <img src="./images/gnosis-logo-png_seeklogo-444543.png" alt="Gnosis" width="50">
-                <h3>Gnosis</h3>
-                <button onclick="copyToClipboard('0x0946956C3bbC2C93ea3EF7Fd2c1F92a49Aef3a3D')">Copy Address</button>
-            </div>
-            <div class="crypto-box">
-                <img src="./images/quant-qnt-logo-red.png" alt="Quant" width="50">
-                <h3>Quant</h3>
-                <button onclick="copyToClipboard('0x37F80A11b96F46C5Ba2D03A0FfCda89174F6B4FC')">Copy Address</button>
-            </div>
-            <div class="crypto-box">
-                <img src="./images/Avalanche_logo_without_text.png" alt="Avalanche" width="50">
-                <h3>Avalanche</h3>
-                <button onclick="copyToClipboard('0x6D8cA87aC19E450eeDCDb1dc6FFf67123EbE85Af')">Copy Address</button>
-            </div>
-        </div>
-    </section>
-</body>
-</html>
+      </div>
+      
+      <div className="mt-8">
+        <Button className="bg-red-500 text-white p-4" onClick={randomCorruption}>Random Corruption</Button>
+      </div>
+    </div>
+  );
+}
