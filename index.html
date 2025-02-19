@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { motion } from "framer-motion";
 
 export default function AnonymousChatRoom() {
   const [messages, setMessages] = useState([]);
@@ -29,45 +27,22 @@ export default function AnonymousChatRoom() {
     }
   };
 
-  const copyToClipboard = (address) => {
-    navigator.clipboard.writeText(address).then(() => {
-      alert('Address copied to clipboard!');
-    }).catch(err => {
-      console.error('Error copying address:', err);
-    });
-  };
-
-  const corruptionLinks = [
-    "https://nypost.com/2024/10/10/us-news/ny-dem-candidate-laura-gillen-decried-corruption-while-handing-1-5b-coliseum-contract-to-donor/",
-    "https://www.cnn.com/2021/04/23/politics/gaetz-probe-public-corruption-medical-marijuana/index.html",
-    "https://www.americanprogress.org/article/big-pharma-reaps-profits-hurting-everyday-americans/",
-    "https://www.politico.com/news/2020/12/27/marijuana-legalization-corruption-450529",
-    "https://apnews.com/article/db868e1685aefe9581fe26680f84ee58"
-  ];
-
-  const randomCorruption = () => {
-    const randomLink = corruptionLinks[Math.floor(Math.random() * corruptionLinks.length)];
-    window.open(randomLink, "_blank");
-  };
-
   return (
-    <div className="p-6 space-y-6 max-w-3xl mx-auto text-center">
+    <div className="p-6 space-y-6 max-w-3xl mx-auto text-center bg-green-100 text-black min-h-screen flex flex-col items-center">
       <h1 className="text-3xl font-bold">Anonymous Chatroom</h1>
-      <p className="text-gray-600">Say anything. No usernames. No tracking.</p>
+      <p>No usernames. No tracking. Just chat.</p>
       
-      <div className="h-80 overflow-y-auto border p-4 rounded">
+      <div className="h-80 w-full max-w-2xl overflow-y-auto border p-4 rounded bg-gray-800 text-white">
         {messages.map((msg, index) => (
-          <motion.div key={index} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <Card className="mb-2 p-2">
-              <CardContent>{msg.text}</CardContent>
-            </Card>
-          </motion.div>
+          <div key={index} className="mb-2 p-2 border-b border-gray-600">
+            {msg.text}
+          </div>
         ))}
       </div>
       
-      <div className="mt-6 flex gap-2">
+      <div className="mt-6 flex gap-2 w-full max-w-2xl">
         <Input 
-          className="flex-grow" 
+          className="flex-grow text-black" 
           placeholder="Type something..." 
           value={input} 
           onChange={(e) => setInput(e.target.value)} 
@@ -75,9 +50,9 @@ export default function AnonymousChatRoom() {
         <Button onClick={sendMessage}>Send</Button>
       </div>
       
-      <div className="mt-8">
+      <div className="mt-8 w-full max-w-2xl text-center">
         <h2 className="text-xl font-bold">Support the Chat - Donate Crypto</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center mt-4">
           {[
             { name: "Bitcoin", address: "38xQ8wPaXkHDvr8Zta6RzKcUQ2hxEKT6CV", img: "/images/Bitcoin.svg.png" },
             { name: "Ethereum", address: "0x549c1cDA2c7EcA5ce9c58d5Bef6d4A33fb6e4e29", img: "/images/ethereum-logo.jpg" },
@@ -88,14 +63,10 @@ export default function AnonymousChatRoom() {
             <div key={index} className="text-center">
               <img src={crypto.img} alt={crypto.name} width="50" className="mx-auto" />
               <p>{crypto.name}</p>
-              <Button onClick={() => copyToClipboard(crypto.address)}>Copy Address</Button>
+              <Button onClick={() => navigator.clipboard.writeText(crypto.address)}>Copy Address</Button>
             </div>
           ))}
         </div>
-      </div>
-      
-      <div className="mt-8">
-        <Button className="bg-red-500 text-white p-4" onClick={randomCorruption}>Random Corruption</Button>
       </div>
     </div>
   );
