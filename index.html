@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 
-export default function AnonymousChatRoom() {
+export default function PolicyForSale() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
 
@@ -28,11 +29,11 @@ export default function AnonymousChatRoom() {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-3xl mx-auto text-center bg-green-100 text-black min-h-screen flex flex-col items-center">
-      <h1 className="text-3xl font-bold">Anonymous Chatroom</h1>
-      <p>No usernames. No tracking. Just chat.</p>
+    <div className="p-6 space-y-6 max-w-4xl mx-auto text-center bg-green-100 text-black min-h-screen flex flex-col items-center">
+      <h1 className="text-4xl font-bold">Policy For Sale</h1>
+      <p className="text-lg">Tracking financial influence in politics.</p>
       
-      <div className="h-80 w-full max-w-2xl overflow-y-auto border p-4 rounded bg-gray-800 text-white">
+      <div className="h-96 w-full max-w-3xl overflow-y-auto border p-4 rounded bg-gray-800 text-white">
         {messages.map((msg, index) => (
           <div key={index} className="mb-2 p-2 border-b border-gray-600">
             {msg.text}
@@ -40,7 +41,7 @@ export default function AnonymousChatRoom() {
         ))}
       </div>
       
-      <div className="mt-6 flex gap-2 w-full max-w-2xl">
+      <div className="mt-6 flex gap-2 w-full max-w-3xl">
         <Input 
           className="flex-grow text-black" 
           placeholder="Type something..." 
@@ -50,8 +51,8 @@ export default function AnonymousChatRoom() {
         <Button onClick={sendMessage}>Send</Button>
       </div>
       
-      <div className="mt-8 w-full max-w-2xl text-center">
-        <h2 className="text-xl font-bold">Support the Chat - Donate Crypto</h2>
+      <div className="mt-8 w-full max-w-3xl text-center">
+        <h2 className="text-2xl font-bold">Support the Platform - Donate Crypto</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center mt-4">
           {[
             { name: "Bitcoin", address: "38xQ8wPaXkHDvr8Zta6RzKcUQ2hxEKT6CV", img: "/images/Bitcoin.svg.png" },
