@@ -4,107 +4,43 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Project</title>
-
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="theme-color" content="#111111" />
   <link rel="stylesheet" href="./style.css" />
-  
-  <style>
-    /* Safety CSS: Ensures the popup actually shows/hides correctly */
-    .hidden { display: none !important; }
-    #overlay {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.85);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: white;
-      z-index: 10;
-      padding: 20px;
-    }
-    #stage { position: relative; width: 100%; max-width: 900px; margin: auto; }
-    canvas { background: #000; width: 100%; height: auto; display: block; }
-  </style>
 </head>
 <body>
   <header>
     <div class="title">Project</div>
-    <div class="sub">Local-only • Performance & balance assessment</div>
+    <div class="sub">Local-only Performance Test</div>
   </header>
-
   <main>
     <section class="card">
-      <h2>0) Permissions</h2>
-      <p class="muted">
-        Motion sensors may require HTTPS and a user tap depending on device/browser.
-      </p>
-      <div class="row">
-        <button id="btnPerms">Enable Motion Sensors</button>
-        <div class="pill" id="motionStatus">Motion: Unknown</div>
-      </div>
+      <h2>1) Permissions</h2>
+      <button id="btnPerms">Enable Motion Sensors</button>
+      <div class="pill" id="motionStatus">Motion: Unknown</div>
     </section>
-
     <section class="card">
-      <h2>Run a Session</h2>
+      <h2>2) Tests</h2>
       <div class="grid">
-        <button class="big" id="btnReaction">1) Reaction + Inhibition (45s)</button>
-        <button class="big" id="btnDivided">2) Divided Attention (60s)</button>
-        <button class="big" id="btnBalance">3) Balance / Sway (30s)</button>
+        <button class="big" id="btnReaction">Reaction Test</button>
+        <button class="big" id="btnDivided">Divided Attention</button>
+        <button class="big" id="btnBalance">Balance Test</button>
       </div>
-      <div class="row">
-        <button id="btnRunAll">Run All (≈3 min)</button>
-        <button class="ghost" id="btnReset">Reset Session</button>
-      </div>
-      <div class="pill" id="sessionStatus">Session: Idle</div>
+      <div id="sessionStatus">Session: Idle</div>
     </section>
-
     <section class="card">
-      <h2>Live Test Area</h2>
       <div id="stage">
         <div id="overlay" class="hidden">
           <h3 id="overlayTitle"></h3>
           <p id="overlayText"></p>
-          <div class="row">
-            <button id="overlayStart">Start</button>
-            <button class="ghost" id="overlayCancel">Cancel</button>
-          </div>
+          <button id="overlayStart">Start</button>
+          <button id="overlayCancel" class="ghost">Cancel</button>
         </div>
-
         <canvas id="canvas" width="900" height="540"></canvas>
-
-        <div id="hud">
-          <div class="pill" id="timerPill">00:00</div>
-          <div class="pill" id="hintPill">Hint: —</div>
-          <div class="pill" id="metricPill">Metric: —</div>
-        </div>
       </div>
-
-      <div class="row">
-        <button class="ghost" id="btnExport">Export Session JSON</button>
-        <button class="ghost" id="btnSaveBaseline">Save as Baseline</button>
-        <button class="ghost" id="btnCompare">Compare to Baseline</button>
-      </div>
-
-      <pre id="results" aria-label="results"></pre>
-    </section>
-
-    <section class="card">
-      <h2>Notes</h2>
-      <ul class="muted">
-        <li>This tool assesses short-term performance and balance.</li>
-        <li>For balance: hold device to chest, feet together, stand still.</li>
-        <li>Best results come from comparing <b>you vs your own baseline</b>.</li>
-      </ul>
+      <pre id="results"></pre>
+      <button id="btnReset">Reset Session</button>
     </section>
   </main>
-
-  <footer>
-    <span class="muted">Project • MVP build • Local data only</span>
-  </footer>
-
   <script src="./app.js" defer></script>
 </body>
 </html>
