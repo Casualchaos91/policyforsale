@@ -3,19 +3,16 @@ let canvas, ctx, motionEnabled = false;
 let session = {};
 let motionSamples = [];
 
-// This waits for the HTML to finish loading
 window.addEventListener('DOMContentLoaded', () => {
     canvas = $("canvas");
     ctx = canvas.getContext("2d");
     
-    // Wire up the buttons
     $("btnPerms").onclick = enableMotion;
     $("btnReaction").onclick = () => showOverlay("Reaction Test", "Tap GREEN circles. Ignore RED squares.", runReaction);
-    $("btnBalance").onclick = () => showOverlay("Balance Test", "Hold phone to chest and stand still for 10s.", runBalance);
+    $("btnBalance").onclick = () => showOverlay("Balance Test", "Hold phone to chest and stand still. Test starts in 3 seconds.", runBalance);
     $("btnReset").onclick = resetApp;
 });
 
-// --- UI Logic ---
 function showOverlay(title, text, startFn) {
     const ov = $("overlay");
     $("overlayTitle").textContent = title;
@@ -34,7 +31,6 @@ function showOverlay(title, text, startFn) {
     };
 }
 
-// --- Sensor Logic (For Samsung/Android) ---
 async function enableMotion() {
     try {
         if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
@@ -55,9 +51,8 @@ async function enableMotion() {
     }
 }
 
-// --- The Reaction Test Game ---
 function runReaction() {
-    const duration = 20000; // 20 seconds
+    const duration = 20000;
     const start = performance.now();
     let trials = [];
     let lastSpawn = 0;
@@ -70,14 +65,13 @@ function runReaction() {
         if (now - start > duration) {
             const hits = trials.filter(t => t.hit && t.go);
             const avgRT = hits.length ? (hits.reduce((a, b) => a + b.rt, 0) / hits.length).toFixed(0) : 0;
-            
-            $("results").textContent = `REACTION COMPLETE\n----------------\nPoints: ${score}\nAvg Speed: ${avgRT}ms\nMissed: ${trials.filter(t => t.go && !t.hit).length}`;
+            $("results").textContent = `REACTION COMPLETE\nPoints: ${score}\nAvg Speed: ${avgRT}ms`;
             return;
         }
 
         if (now - lastSpawn > 1000) {
             lastSpawn = now;
-            const isGo = Math.random() > 0.3; // 70% chance for green
+            const isGo = Math.random() > 0.3;
             trials.push({t: now, go: isGo, hit: false, x: Math.random() * (canvas.width - 100) + 50, y: Math.random() * (canvas.height - 100) + 50});
         }
 
@@ -90,3 +84,62 @@ function runReaction() {
                 ctx.fill();
             }
         });
+        requestAnimationFrame(gameLoop);
+    }
+
+    canvas.onclick = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        trials.forEach(t => {
+            const dist = Math.hypot(mouseX - t.x, mouseY - t.y);
+            if (dist < 50 && !t.hit) { 
+                t.hit = true;
+                t.rt = performance.now() - t.t;
+                if (t.go) score++; else score--; 
+            }
+        });
+    };
+    gameLoop();
+}
+
+// --- FIXED BALANCE / SWAY ---
+function runBalance() {
+    motionSamples = []; // Clear old data
+    let countdown = 3;
+    
+    const cdInterval = setInterval(() => {
+        $("results").textContent = `Get ready... ${countdown}`;
+        countdown--;
+        if (countdown < 0) {
+            clearInterval(cdInterval);
+            startRecording();
+        }
+    }, 1000);
+
+    function startRecording() {
+        motionSamples = []; // Start fresh after countdown
+        $("results").textContent = "RECORDING... Stand still for 10 seconds.";
+        
+        setTimeout(() => {
+            if (motionSamples.length < 20) {
+                $("results").textContent = "ERROR: No motion data. Enable sensors first!";
+                return;
+            }
+
+            // Math: Calculate the "Root Mean Square Error" (Wobble)
+            const magnitudes = motionSamples.map(s => Math.hypot(s.x, s.y, s.z));
+            const avg = magnitudes.reduce((a, b) => a + b, 0) / magnitudes.length;
+            const variance = magnitudes.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / magnitudes.length;
+            const swayScore = Math.sqrt(variance);
+
+            $("results").textContent = `BALANCE COMPLETE\n----------------\nSway Score: ${swayScore.toFixed(4)}\nSamples: ${motionSamples.length}\nNote: Under 0.05 is steady.`;
+        }, 10000); // 10 second recording
+    }
+}
+
+function resetApp() {
+    $("results").textContent = "Data cleared.";
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
