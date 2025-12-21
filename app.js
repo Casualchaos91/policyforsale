@@ -1,56 +1,116 @@
 const $ = id => document.getElementById(id);
+let canvas, ctx, motionEnabled = false;
+let session = {};
+let motionSamples = [];
 
-// This ensures the code waits for the buttons to exist
-window.addEventListener('load', () => {
-    console.log("App Loaded");
+// This waits for the HTML to finish loading
+window.addEventListener('DOMContentLoaded', () => {
+    canvas = $("canvas");
+    ctx = canvas.getContext("2d");
     
     // Wire up the buttons
     $("btnPerms").onclick = enableMotion;
-    $("btnReaction").onclick = () => showOverlay("Reaction", "Tap Green Circles", startReaction);
-    
-    // Simple test to see if buttons work:
-    $("btnReset").onclick = () => alert("Logic is connected!");
+    $("btnReaction").onclick = () => showOverlay("Reaction Test", "Tap GREEN circles. Ignore RED squares.", runReaction);
+    $("btnBalance").onclick = () => showOverlay("Balance Test", "Hold phone to chest and stand still.", runBalance);
+    $("btnReset").onclick = resetApp;
 });
 
-async function enableMotion() {
-    // Android/Chrome doesn't usually use .requestPermission()
-    // It just needs a user gesture (a click) to start listening
-    try {
-        if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
-            await DeviceMotionEvent.requestPermission();
-        }
-        
-        window.addEventListener("devicemotion", (e) => {
-            // Test if we are getting data
-            if(e.accelerationIncludingGravity) {
-                $("motionStatus").textContent = "Motion: Active";
-                $("motionStatus").style.color = "#34d399";
-            }
-        }, { once: true }); // Just check once to see if it works
-        
-    } catch (e) {
-        $("motionStatus").textContent = "Motion: Error";
-        console.error(e);
-    }
-}
-
+// --- UI Logic ---
 function showOverlay(title, text, startFn) {
     const ov = $("overlay");
     $("overlayTitle").textContent = title;
     $("overlayText").textContent = text;
-    ov.classList.remove("hidden");
-    ov.style.display = "flex"; // Force visibility
+    ov.classList.remove("hidden"); // Show it
+    ov.style.display = "flex";    // Force it
     
     $("overlayStart").onclick = () => {
         ov.style.display = "none";
+        ov.classList.add("hidden");
         startFn();
+    };
+    $("overlayCancel").onclick = () => {
+        ov.style.display = "none";
+        ov.classList.add("hidden");
     };
 }
 
-function startReaction() {
-    const canvas = $("canvas");
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "green";
-    ctx.fillRect(100, 100, 50, 50); // Draw a test square
-    console.log("Reaction test started");
+// --- Sensor Logic (For your Samsung Galaxy) ---
+async function enableMotion() {
+    try {
+        if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
+            const res = await DeviceMotionEvent.requestPermission();
+            if (res !== "granted") return;
+        }
+        
+        window.addEventListener("devicemotion", (e) => {
+            motionEnabled = true;
+            const a = e.accelerationIncludingGravity;
+            if(a) {
+                motionSamples.push({x: a.x, y: a.y, z: a.z, t: performance.now()});
+                $("motionStatus").textContent = "Motion: Active";
+                $("motionStatus").style.color = "#34d399";
+            }
+        });
+    } catch (e) {
+        alert("Sensors blocked. Please check Chrome Site Settings.");
+    }
+}
+
+// --- The Reaction Test Game ---
+function runReaction() {
+    const duration = 10000; // 10 seconds for testing
+    const start = performance.now();
+    let trials = [];
+    let lastSpawn = 0;
+
+    function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let now = performance.now();
+
+        if (now - start > duration) {
+            $("results").textContent = "Test Complete! Items caught: " + trials.filter(t => t.hit).length;
+            return;
+        }
+
+        // Spawn a circle every second
+        if (now - lastSpawn > 1000) {
+            lastSpawn = now;
+            const isGo = Math.random() > 0.3;
+            trials.push({t: now, go: isGo, hit: false, x: Math.random() * 800 + 50, y: Math.random() * 400 + 50});
+        }
+
+        // Draw circles
+        trials.forEach(t => {
+            if (!t.hit && now - t.t < 800) {
+                ctx.fillStyle = t.go ? "#22c55e" : "#ef4444";
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, 40, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
+        requestAnimationFrame(gameLoop);
+    }
+    
+    canvas.onclick = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        // Simple hit detection logic could go here
+    };
+
+    gameLoop();
+}
+
+// --- The Balance Test ---
+function runBalance() {
+    motionSamples = [];
+    setTimeout(() => {
+        $("results").textContent = "Balance samples collected: " + motionSamples.length;
+    }, 5000); // 5 seconds test
+}
+
+function resetApp() {
+    session = {};
+    $("results").textContent = "Data cleared.";
+    $("motionStatus").textContent = "Motion: Off";
 }
