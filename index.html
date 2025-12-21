@@ -2,45 +2,60 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Project</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Project MVP</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
   <header>
     <div class="title">Project</div>
-    <div class="sub">Local-only Performance Test</div>
+    <div class="sub">Local-only Performance Assessment</div>
   </header>
+
   <main>
     <section class="card">
-      <h2>1) Permissions</h2>
-      <button id="btnPerms">Enable Motion Sensors</button>
-      <div class="pill" id="motionStatus">Motion: Unknown</div>
-    </section>
-    <section class="card">
-      <h2>2) Tests</h2>
-      <div class="grid">
-        <button class="big" id="btnReaction">Reaction Test</button>
-        <button class="big" id="btnDivided">Divided Attention</button>
-        <button class="big" id="btnBalance">Balance Test</button>
+      <h2>1) Setup</h2>
+      <div class="row">
+        <button id="btnPerms">Enable Motion Sensors</button>
+        <div class="pill" id="motionStatus">Motion: Off</div>
       </div>
-      <div id="sessionStatus">Session: Idle</div>
     </section>
+
+    <section class="card">
+      <h2>2) Run Test</h2>
+      <div class="grid">
+        <button class="big" id="btnReaction">Reaction + Inhibition</button>
+        <button class="big" id="btnBalance">Balance / Sway</button>
+      </div>
+      <div id="sessionStatus" style="margin-top:10px; font-size:14px;">Status: Idle</div>
+    </section>
+
     <section class="card">
       <div id="stage">
         <div id="overlay" class="hidden">
           <h3 id="overlayTitle"></h3>
           <p id="overlayText"></p>
-          <button id="overlayStart">Start</button>
-          <button id="overlayCancel" class="ghost">Cancel</button>
+          <div class="row" style="justify-content:center;">
+            <button id="overlayStart">Start</button>
+            <button id="overlayCancel" class="ghost">Cancel</button>
+          </div>
         </div>
+
         <canvas id="canvas" width="900" height="540"></canvas>
       </div>
-      <pre id="results"></pre>
-      <button id="btnReset">Reset Session</button>
+    </section>
+
+    <section class="card">
+      <h2>Results</h2>
+      <pre id="results">Your session data will appear here...</pre>
+      <button class="ghost" id="btnReset">Clear All Data</button>
     </section>
   </main>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
   <script src="./app.js" defer></script>
 </body>
 </html>
