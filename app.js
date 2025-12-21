@@ -11,7 +11,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Wire up the buttons
     $("btnPerms").onclick = enableMotion;
     $("btnReaction").onclick = () => showOverlay("Reaction Test", "Tap GREEN circles. Ignore RED squares.", runReaction);
-    $("btnBalance").onclick = () => showOverlay("Balance Test", "Hold phone to chest and stand still.", runBalance);
+    $("btnBalance").onclick = () => showOverlay("Balance Test", "Hold phone to chest and stand still for 10s.", runBalance);
     $("btnReset").onclick = resetApp;
 });
 
@@ -20,8 +20,8 @@ function showOverlay(title, text, startFn) {
     const ov = $("overlay");
     $("overlayTitle").textContent = title;
     $("overlayText").textContent = text;
-    ov.classList.remove("hidden"); // Show it
-    ov.style.display = "flex";    // Force it
+    ov.classList.remove("hidden");
+    ov.style.display = "flex";
     
     $("overlayStart").onclick = () => {
         ov.style.display = "none";
@@ -34,7 +34,7 @@ function showOverlay(title, text, startFn) {
     };
 }
 
-// --- Sensor Logic (For your Samsung Galaxy) ---
+// --- Sensor Logic (For Samsung/Android) ---
 async function enableMotion() {
     try {
         if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
@@ -43,7 +43,6 @@ async function enableMotion() {
         }
         
         window.addEventListener("devicemotion", (e) => {
-            motionEnabled = true;
             const a = e.accelerationIncludingGravity;
             if(a) {
                 motionSamples.push({x: a.x, y: a.y, z: a.z, t: performance.now()});
@@ -52,65 +51,42 @@ async function enableMotion() {
             }
         });
     } catch (e) {
-        alert("Sensors blocked. Please check Chrome Site Settings.");
+        alert("Sensors blocked. Check Chrome Site Settings > Motion Sensors.");
     }
 }
 
 // --- The Reaction Test Game ---
 function runReaction() {
-    const duration = 10000; // 10 seconds for testing
+    const duration = 20000; // 20 seconds
     const start = performance.now();
     let trials = [];
     let lastSpawn = 0;
+    let score = 0;
 
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         let now = performance.now();
 
         if (now - start > duration) {
-            $("results").textContent = "Test Complete! Items caught: " + trials.filter(t => t.hit).length;
+            const hits = trials.filter(t => t.hit && t.go);
+            const avgRT = hits.length ? (hits.reduce((a, b) => a + b.rt, 0) / hits.length).toFixed(0) : 0;
+            
+            $("results").textContent = `REACTION COMPLETE\n----------------\nPoints: ${score}\nAvg Speed: ${avgRT}ms\nMissed: ${trials.filter(t => t.go && !t.hit).length}`;
             return;
         }
 
-        // Spawn a circle every second
         if (now - lastSpawn > 1000) {
             lastSpawn = now;
-            const isGo = Math.random() > 0.3;
-            trials.push({t: now, go: isGo, hit: false, x: Math.random() * 800 + 50, y: Math.random() * 400 + 50});
+            const isGo = Math.random() > 0.3; // 70% chance for green
+            trials.push({t: now, go: isGo, hit: false, x: Math.random() * (canvas.width - 100) + 50, y: Math.random() * (canvas.height - 100) + 50});
         }
 
-        // Draw circles
         trials.forEach(t => {
-            if (!t.hit && now - t.t < 800) {
+            const age = now - t.t;
+            if (!t.hit && age < 900) { 
                 ctx.fillStyle = t.go ? "#22c55e" : "#ef4444";
                 ctx.beginPath();
-                ctx.arc(t.x, t.y, 40, 0, Math.PI * 2);
+                ctx.arc(t.x, t.y, 45, 0, Math.PI * 2);
                 ctx.fill();
             }
         });
-        requestAnimationFrame(gameLoop);
-    }
-    
-    canvas.onclick = (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const clickY = e.clientY - rect.top;
-        // Simple hit detection logic could go here
-    };
-
-    gameLoop();
-}
-
-// --- The Balance Test ---
-function runBalance() {
-    motionSamples = [];
-    setTimeout(() => {
-        $("results").textContent = "Balance samples collected: " + motionSamples.length;
-    }, 5000); // 5 seconds test
-}
-
-function resetApp() {
-    session = {};
-    $("results").textContent = "Data cleared.";
-    $("motionStatus").textContent = "Motion: Off";
-}
