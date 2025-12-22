@@ -1,58 +1,56 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>Performance MVP v1.3</title>
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Impairment Battery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: white; }
+        canvas { touch-action: none; cursor: crosshair; background: #1e293b; border-radius: 0.5rem; width: 100%; max-width: 900px; height: auto; aspect-ratio: 900 / 540; }
+        .hidden { display: none; }
+    </style>
 </head>
-<body>
-  <header>
-    <div class="title">Project</div>
-    <div class="sub">Cognitive & Motor Battery</div>
-  </header>
-
-  <main>
-    <section class="card">
-      <h2>1) Setup</h2>
-      <div class="row">
-        <button id="btnPerms">Enable Motion Sensors</button>
-        <div class="pill" id="motionStatus">Motion: Off</div>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>2) Run Test</h2>
-      <div class="grid">
-        <button class="big" id="btnReaction">Reaction + Inhibition</button>
-        <button class="big" id="btnBalance">Balance / Sway</button>
-        <button class="big" id="btnTrailing">Trailing Track</button>
-        <button class="big" id="btnPuzzle">Numerical Puzzle</button>
-        <button class="big" id="btnDog">Dog Memory</button>
-      </div>
-    </section>
-
-    <section class="card">
-      <div id="stage">
-        <div id="overlay" class="hidden">
-          <h3 id="overlayTitle"></h3>
-          <p id="overlayText"></p>
-          <div class="row" style="justify-content:center;">
-            <button id="overlayStart">Start</button>
-          </div>
+<body class="p-4 md:p-8">
+    <div class="max-w-5xl mx-auto space-y-6">
+        
+        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+            <h2 class="text-xl font-semibold mb-4 text-slate-300">1) Setup</h2>
+            <div class="flex items-center gap-4">
+                <button id="btnPerms" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded font-bold transition-all">Enable Motion Sensors</button>
+                <span id="motionStatus" class="text-slate-400">Motion: Off</span>
+            </div>
         </div>
-        <canvas id="canvas" width="900" height="540"></canvas>
-      </div>
-    </section>
 
-    <section class="card">
-      <h2>Results</h2>
-      <pre id="results">Waiting for test completion...</pre>
-      <button class="ghost" id="btnReset">Clear All Data</button>
-    </section>
-  </main>
+        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+            <h2 class="text-xl font-semibold mb-4 text-slate-300">2) Run Test</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <button id="btnReaction" class="bg-blue-600 hover:bg-blue-500 p-3 rounded-lg font-bold text-sm transition-all">Reaction</button>
+                <button id="btnBalance" class="bg-blue-600 hover:bg-blue-500 p-3 rounded-lg font-bold text-sm transition-all">Balance</button>
+                <button id="btnTrailing" class="bg-blue-600 hover:bg-blue-500 p-3 rounded-lg font-bold text-sm transition-all">Trailing</button>
+                <button id="btnPuzzle" class="bg-blue-600 hover:bg-blue-500 p-3 rounded-lg font-bold text-sm transition-all">Puzzle</button>
+                <button id="btnDog" class="bg-blue-600 hover:bg-blue-500 p-3 rounded-lg font-bold text-sm transition-all">Dog Memory</button>
+                <button id="btnReset" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-lg font-bold text-sm transition-all text-red-400">Reset</button>
+            </div>
+            <div id="results" class="mt-4 p-4 bg-slate-900 rounded border border-slate-700 text-lg font-mono min-h-[60px] flex items-center">
+                Waiting for test...
+            </div>
+        </div>
 
+        <div class="relative inline-block w-full">
+            <canvas id="canvas" width="900" height="540" class="border border-slate-700 shadow-2xl"></canvas>
+            
+            <div id="overlay" class="absolute inset-0 bg-slate-900/90 flex flex-col items-center justify-center p-6 text-center hidden">
+                <h3 id="overlayTitle" class="text-3xl font-bold mb-2 text-blue-400"></h3>
+                <p id="overlayText" class="text-xl mb-6 text-slate-300 max-w-md"></p>
+                <button id="overlayStart" class="bg-blue-600 hover:bg-blue-500 px-8 py-3 rounded-full font-bold text-xl transition-transform active:scale-95">START TEST</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
   <script src="./app.js" defer></script>
 </body>
 </html>
