@@ -3,15 +3,24 @@ const $ = id => document.getElementById(id);
 window.addEventListener('load', () => {
     const canvas = $("canvas");
     const ctx = canvas.getContext("2d");
+    const overlay = $("overlay");
     let motionSamples = [];
 
+    // --- FIXED OVERLAY LOGIC ---
     function showOverlay(title, text, startFn) {
-        const ov = $("overlay");
         $("overlayTitle").textContent = title;
         $("overlayText").textContent = text;
-        ov.classList.remove("hidden");
-        ov.style.display = "flex";
-        $("overlayStart").onclick = () => { ov.classList.add("hidden"); startFn(); };
+        
+        // Ensure overlay is visible
+        overlay.classList.remove("hidden");
+        overlay.style.display = "flex"; 
+
+        $("overlayStart").onclick = () => {
+            // Force hide overlay
+            overlay.classList.add("hidden");
+            overlay.style.display = "none"; 
+            startFn();
+        };
     }
 
     const wire = (id, fn) => { if ($(id)) $(id).onclick = fn; };
@@ -30,12 +39,17 @@ window.addEventListener('load', () => {
         } catch (e) { alert("Sensors blocked."); }
     });
 
+    // Test Wiring
     wire("btnReaction", () => showOverlay("Reaction", "Tap Green/Blue. (Need 15 to Pass)", runReaction));
     wire("btnBalance", () => showOverlay("Balance", "Hold phone still against chest.", runBalance));
     wire("btnTrailing", () => showOverlay("Trailing", "Trace the shooting star tail.", runTrailing));
     wire("btnPuzzle", () => showOverlay("Numerical Puzzle", "Stack 1-5 in order by color.", runPuzzle));
     wire("btnDog", () => showOverlay("Dog Memory", "Memorize for 8s. Reassemble in 7s.", runDogPuzzle));
-    wire("btnReset", () => { ctx.clearRect(0,0,canvas.width,canvas.height); $("results").textContent = "Waiting..."; $("results").style.color = "white"; });
+    wire("btnReset", () => { 
+        ctx.clearRect(0,0,canvas.width,canvas.height); 
+        $("results").textContent = "Waiting..."; 
+        $("results").style.color = "white"; 
+    });
 
     // --- 1. NUMERICAL SQUARE PUZZLE (96px) ---
     function runPuzzle() {
@@ -156,7 +170,7 @@ window.addEventListener('load', () => {
         loop();
     }
 
-    // --- 3. TRAILING TRACK (+4% SPEED) ---
+    // --- 3. TRAILING TRACK ---
     function runTrailing() {
         const start = performance.now();
         let ball = {x:450, y:270, vx:4.16, vy:4.16}, trail = [], scoreSum = 0, samples = 0;
@@ -185,7 +199,7 @@ window.addEventListener('load', () => {
         loop();
     }
 
-    // --- 4. REACTION (50s / 15 TO PASS) ---
+    // --- 4. REACTION ---
     function runReaction() {
         const start = performance.now();
         const duration = 50000;
