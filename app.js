@@ -1,41 +1,25 @@
-// Safe selector function
 const $ = id => document.getElementById(id);
 
 window.addEventListener('load', () => {
-    console.log("App.js is connected and running.");
     const canvas = $("canvas");
-    if (!canvas) {
-        console.error("Canvas not found!");
-        return;
-    }
     const ctx = canvas.getContext("2d");
     let motionSamples = [];
 
-    // --- SHARED FUNCTIONS ---
     function showOverlay(title, text, startFn) {
         const ov = $("overlay");
         $("overlayTitle").textContent = title;
         $("overlayText").textContent = text;
         ov.classList.remove("hidden");
         ov.style.display = "flex";
-        $("overlayStart").onclick = () => {
-            ov.style.display = "none";
-            startFn();
-        };
+        $("overlayStart").onclick = () => { ov.style.display = "none"; startFn(); };
     }
 
-    // --- BUTTON WIRING (Fail-Safe) ---
-    const wire = (id, fn) => {
-        const el = $(id);
-        if (el) el.onclick = fn;
-        else console.warn(`Button ${id} not found in HTML`);
-    };
+    const wire = (id, fn) => { if ($(id)) $(id).onclick = fn; };
 
     wire("btnPerms", async () => {
         try {
             if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
-                const res = await DeviceMotionEvent.requestPermission();
-                if (res !== "granted") return;
+                await DeviceMotionEvent.requestPermission();
             }
             window.addEventListener("devicemotion", (e) => {
                 const a = e.accelerationIncludingGravity;
@@ -43,17 +27,95 @@ window.addEventListener('load', () => {
             });
             $("motionStatus").textContent = "Motion: Active";
             $("motionStatus").style.color = "#34d399";
-        } catch (e) { alert("Sensors blocked or not supported."); }
+        } catch (e) { alert("Sensors blocked."); }
     });
 
     wire("btnReaction", () => showOverlay("Reaction", "Tap Green/Blue. Ignore Red/Yellow.", runReaction));
-    wire("btnBalance", () => showOverlay("Balance", "Hold phone to chest, stand still.", runBalance));
+    wire("btnBalance", () => showOverlay("Balance", "Hold phone still against chest.", runBalance));
     wire("btnTrailing", () => showOverlay("Trailing", "Trace the shooting star tail.", runTrailing));
-    wire("btnPuzzle", () => showOverlay("Numerical Puzzle", "Stack 1-5 in order (Green, Red, Yellow).", runPuzzle));
-    wire("btnDog", () => showOverlay("Dog Memory", "Memorize for 8s, then attach the missing parts.", runDogPuzzle));
+    wire("btnPuzzle", () => showOverlay("Numerical Puzzle", "Stack numbers 1 (top) to 5 (bottom) in the colored zones.", runPuzzle));
+    wire("btnDog", () => showOverlay("Dog Memory", "Memorize for 8s, then reattach the parts.", runDogPuzzle));
     wire("btnReset", () => { ctx.clearRect(0,0,canvas.width,canvas.height); $("results").textContent = "Reset."; });
 
-    // --- 1. DOG MEMORY PUZZLE ---
+    // --- 1. NUMERICAL SQUARE PUZZLE (FIXED VISUALS) ---
+    function runPuzzle() {
+        const duration = 35000; const start = performance.now();
+        let pieces = [], selected = null; const w = 92, h = 92;
+        
+        // Designated Stacking Zones
+        const zones = {
+            '#22c55e': { x: 80, y: 120, label: "GREEN" },
+            '#ef4444': { x: 280, y: 120, label: "RED" },
+            '#facc15': { x: 480, y: 120, label: "YELLOW" }
+        };
+
+        ['#22c55e','#ef4444','#facc15'].forEach((color, cIdx) => {
+            for(let i=0; i<5; i++) {
+                pieces.push({
+                    color, num: i+1, 
+                    x: 750, y: 40 + (pieces.length * 28), // Spawn in a neat sidebar stack
+                    tx: zones[color].x, ty: zones[color].y + (i * 45), 
+                    locked: false
+                });
+            }
+        });
+
+        function loop() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            let rem = Math.max(0, ((duration - (performance.now()-start))/1000).toFixed(1));
+            
+            if (rem <= 0 || pieces.every(p=>p.locked)) {
+                const passed = pieces.every(p=>p.locked);
+                $("results").textContent = `PUZZLE: ${passed?"PASS":"FAIL"}`;
+                $("results").style.color = passed ? "#34d399" : "#fb7185";
+                return;
+            }
+
+            // Draw Target "Pedestals"
+            Object.keys(zones).forEach(key => {
+                const z = zones[key];
+                ctx.strokeStyle = key; ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
+                ctx.strokeRect(z.x - 5, z.y - 5, w + 10, (5 * 45) + 55);
+                ctx.setLineDash([]);
+                ctx.fillStyle = key; ctx.font = "bold 16px Arial"; ctx.textAlign="center";
+                ctx.fillText(z.label, z.x + w/2, z.y - 15);
+            });
+
+            // Draw Pieces
+            pieces.sort((a,b) => a.locked - b.locked).forEach(p => {
+                ctx.fillStyle = p.color; ctx.globalAlpha = p.locked ? 1.0 : 0.8;
+                ctx.fillRect(p.x, p.y, w, h);
+                ctx.strokeStyle = "white"; ctx.strokeRect(p.x, p.y, w, h);
+                ctx.fillStyle = "black"; ctx.font = "bold 28px Arial"; ctx.textAlign="center";
+                ctx.fillText(p.num, p.x+w/2, p.y+h/2+10);
+            });
+
+            ctx.globalAlpha = 1.0; ctx.fillStyle = "white"; ctx.textAlign="left";
+            ctx.fillText(`Time: ${rem}s`, 20, 30);
+            requestAnimationFrame(loop);
+        }
+
+        canvas.onpointerdown = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = (e.clientX-rect.left)*(900/rect.width), my = (e.clientY-rect.top)*(540/rect.height);
+            selected = pieces.findLast(p => !p.locked && mx > p.x && mx < p.x+w && my > p.y && my < p.y+h);
+        };
+        canvas.onpointermove = (e) => {
+            if(selected) { 
+                const rect = canvas.getBoundingClientRect();
+                selected.x = (e.clientX-rect.left)*(900/rect.width)-w/2; selected.y = (e.clientY-rect.top)*(540/rect.height)-h/2; 
+            }
+        };
+        canvas.onpointerup = () => {
+            if (selected && Math.abs(selected.x-selected.tx)<90 && Math.abs(selected.y-selected.ty)<90) { 
+                selected.x=selected.targetX || selected.tx; selected.y=selected.targetY || selected.ty; selected.locked=true; 
+            }
+            selected = null;
+        };
+        loop();
+    }
+
+    // --- 2. DOG MEMORY PUZZLE ---
     function drawDogPart(x, y, part, color = "white") {
         ctx.fillStyle = color; ctx.beginPath();
         if (part === "body") {
@@ -80,15 +142,12 @@ window.addEventListener('load', () => {
             { type: "leg", x: 820, y: 350, tx: 480, ty: 330, locked: false }
         ];
         let selected = null;
-
         function loop() {
             ctx.clearRect(0,0,canvas.width,canvas.height);
             let now = performance.now();
             if (isMemorizing) {
-                ctx.fillStyle = "white"; ctx.font = "24px Arial";
-                ctx.fillText(`Memorize! ${(8 - (now-start)/1000).toFixed(1)}s`, 50, 50);
-                drawDogPart(450, 270, "body"); drawDogPart(345, 195, "ear");
-                drawDogPart(530, 270, "tail"); drawDogPart(400, 330, "leg"); drawDogPart(480, 330, "leg");
+                ctx.fillStyle="white"; ctx.font="24px Arial"; ctx.fillText(`Memorize! ${(8-(now-start)/1000).toFixed(1)}s`, 50, 50);
+                drawDogPart(450, 270, "body"); drawDogPart(345, 195, "ear"); drawDogPart(530, 270, "tail"); drawDogPart(400, 330, "leg"); drawDogPart(480, 330, "leg");
                 if (now-start > 8000) isMemorizing = false;
             } else {
                 if (pieces.every(p => p.locked)) { $("results").textContent = "DOG PUZZLE: PASS"; return; }
@@ -98,57 +157,16 @@ window.addEventListener('load', () => {
             if(!pieces.every(p=>p.locked)) requestAnimationFrame(loop);
         }
         canvas.onpointerdown = (e) => {
+            if(isMemorizing) return;
             const rect = canvas.getBoundingClientRect();
             const mx = (e.clientX-rect.left)*(900/rect.width), my = (e.clientY-rect.top)*(540/rect.height);
             selected = pieces.findLast(p => !p.locked && Math.hypot(mx-p.x, my-p.y) < 60);
         };
         canvas.onpointermove = (e) => {
-            if (selected) {
-                const rect = canvas.getBoundingClientRect();
-                selected.x = (e.clientX-rect.left)*(900/rect.width); selected.y = (e.clientY-rect.top)*(540/rect.height);
-            }
+            if(selected) { const rect = canvas.getBoundingClientRect(); selected.x = (e.clientX-rect.left)*(900/rect.width); selected.y = (e.clientY-rect.top)*(540/rect.height); }
         };
         canvas.onpointerup = () => {
-            if (selected && Math.hypot(selected.x - selected.tx, selected.y - selected.ty) < 90) {
-                selected.x = selected.tx; selected.y = selected.ty; selected.locked = true;
-            }
-            selected = null;
-        };
-        loop();
-    }
-
-    // --- 2. NUMERICAL SQUARE PUZZLE ---
-    function runPuzzle() {
-        const duration = 35000; const start = performance.now();
-        let pieces = [], selected = null; const w = 92, h = 92;
-        const zones = {'#22c55e':{x:100,y:150}, '#ef4444':{x:350,y:150}, '#facc15':{x:600,y:150}};
-        ['#22c55e','#ef4444','#facc15'].forEach(color => {
-            for(let i=0; i<5; i++) pieces.push({color, num:i+1, x:800, y:50+(pieces.length*25), targetX:zones[color].x, targetY:zones[color].y+(i*40), locked:false});
-        });
-        function loop() {
-            ctx.clearRect(0,0,canvas.width,canvas.height);
-            let rem = Math.max(0, ((duration - (performance.now()-start))/1000).toFixed(1));
-            if (rem <= 0 || pieces.every(p=>p.locked)) { $("results").textContent = `PUZZLE: ${pieces.every(p=>p.locked)?"PASS":"FAIL"}`; return; }
-            pieces.forEach(p => {
-                ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, w, h);
-                ctx.fillStyle = "black"; ctx.font = "bold 24px Arial"; ctx.textAlign="center";
-                ctx.fillText(p.num, p.x+w/2, p.y+h/2+8);
-            });
-            requestAnimationFrame(loop);
-        }
-        canvas.onpointerdown = (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const mx = (e.clientX-rect.left)*(900/rect.width), my = (e.clientY-rect.top)*(540/rect.height);
-            selected = pieces.findLast(p => !p.locked && mx > p.x && mx < p.x+w && my > p.y && my < p.y+h);
-        };
-        canvas.onpointermove = (e) => {
-            if(selected) { 
-                const rect = canvas.getBoundingClientRect();
-                selected.x = (e.clientX-rect.left)*(900/rect.width)-w/2; selected.y = (e.clientY-rect.top)*(540/rect.height)-h/2; 
-            }
-        };
-        canvas.onpointerup = () => {
-            if (selected && Math.abs(selected.x-selected.targetX)<90 && Math.abs(selected.y-selected.targetY)<90) { selected.x=selected.targetX; selected.y=selected.targetY; selected.locked=true; }
+            if (selected && Math.hypot(selected.x - selected.tx, selected.y - selected.ty) < 90) { selected.x = selected.tx; selected.y = selected.ty; selected.locked = true; }
             selected = null;
         };
         loop();
@@ -181,7 +199,7 @@ window.addEventListener('load', () => {
         loop();
     }
 
-    // --- 4. REACTION & BALANCE ---
+    // --- 4. REACTION ---
     function runReaction() {
         const start = performance.now();
         let objs = [], last = 0, score = 0;
@@ -204,6 +222,7 @@ window.addEventListener('load', () => {
         loop();
     }
 
+    // --- 5. BALANCE ---
     function runBalance() {
         $("results").textContent = "Recording in 3s...";
         setTimeout(() => {
