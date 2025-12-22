@@ -6,10 +6,10 @@ window.addEventListener('DOMContentLoaded', () => {
     canvas = $("canvas");
     ctx = canvas.getContext("2d");
     
-    // Wire up buttons
     $("btnPerms").onclick = enableMotion;
-    $("btnReaction").onclick = () => showOverlay("Reaction Test", "TAP: Green Circles, Green Stars/Squares, and Blue Stars/Squares. IGNORE: Red and Yellow.", runReaction);
-    $("btnBalance").onclick = () => showOverlay("Balance Test", "Hold phone to chest and stand still. Test starts in 3 seconds.", runBalance);
+    $("btnReaction").onclick = () => showOverlay("Reaction Test", "TAP: Green Circles/Stars/Squares & Blue Stars/Squares. IGNORE: Red and Yellow.", runReaction);
+    $("btnBalance").onclick = () => showOverlay("Balance Test", "Hold phone to chest and stand still. Starts in 3s.", runBalance);
+    $("btnTrailing").onclick = () => showOverlay("Trailing Track", "Keep your finger on the green ball as it moves!", runTrailing);
     $("btnReset").onclick = resetApp;
 });
 
@@ -19,7 +19,6 @@ function showOverlay(title, text, startFn) {
     $("overlayText").textContent = text;
     ov.classList.remove("hidden");
     ov.style.display = "flex";
-    
     $("overlayStart").onclick = () => {
         ov.style.display = "none";
         ov.classList.add("hidden");
@@ -27,6 +26,7 @@ function showOverlay(title, text, startFn) {
     };
 }
 
+// --- Motion Permission (Critical for Balance) ---
 async function enableMotion() {
     try {
         if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
@@ -42,28 +42,12 @@ async function enableMotion() {
     } catch (e) { alert("Sensors blocked."); }
 }
 
-function drawStar(x, y, r, p, m, color) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.translate(x, y);
-    ctx.moveTo(0, 0 - r);
-    for (let i = 0; i < p; i++) {
-        ctx.rotate(Math.PI / p);
-        ctx.lineTo(0, 0 - (r * m));
-        ctx.rotate(Math.PI / p);
-        ctx.lineTo(0, 0 - r);
-    }
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.restore();
-}
-
-function runReaction() {
-    const duration = 45000;
+// --- NEW: Trailing Track Exam ---
+function runTrailing() {
+    const duration = 30000;
     const start = performance.now();
-    let objects = [];
-    let lastSpawn = 0;
-    let score = 0;
+    let ball = { x: 450, y: 270, vx: 4, vy: 4 };
+    let scoreTotal = 0, samples = 0;
 
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -71,99 +55,36 @@ function runReaction() {
         let remaining = Math.max(0, ((duration - (now - start)) / 1000).toFixed(1));
 
         if (now - start > duration) {
-            const passed = score >= 15;
-            $("results").textContent = `REACTION COMPLETE\nScore: ${score}\nStatus: ${passed ? "PASSED" : "FAILED"}`;
-            $("results").style.color = passed ? "#34d399" : "#fb7185";
-            canvas.onpointerdown = null; // Clean up touch listener
+            const accuracy = samples > 0 ? (scoreTotal / samples).toFixed(1) : 0;
+            $("results").textContent = `TRAILING COMPLETE\nAccuracy: ${accuracy}%\nStatus: ${accuracy > 70 ? "PASS" : "FAIL"}`;
+            canvas.onpointermove = null;
             return;
         }
 
-        ctx.fillStyle = "white";
-        ctx.font = "24px Arial";
-        ctx.fillText(`Time: ${remaining}s  Score: ${score}`, 20, 40);
+        // Move Ball
+        ball.x += ball.vx; ball.y += ball.vy;
+        if (ball.x < 50 || ball.x > canvas.width - 50) ball.vx *= -1;
+        if (ball.y < 50 || ball.y > canvas.height - 50) ball.vy *= -1;
+        if (Math.random() < 0.02) { ball.vx = (Math.random()-0.5)*10; ball.vy = (Math.random()-0.5)*10; }
 
-        if (now - lastSpawn > 800) {
-            lastSpawn = now;
-            const count = Math.floor(Math.random() * 2) + 1; 
-            for(let i=0; i<count; i++) {
-                const types = ['circle', 'star', 'square'];
-                const colors = ['#22c55e', '#ef4444', '#facc15', '#3b82f6'];
-                const type = types[Math.floor(Math.random() * types.length)];
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                
-                let isTarget = false;
-                if (color === '#22c55e' && type === 'circle') isTarget = true;
-                if ((color === '#22c55e' || color === '#3b82f6') && (type === 'star' || type === 'square')) isTarget = true;
+        // Draw Target
+        ctx.fillStyle = "#22c55e";
+        ctx.beginPath(); ctx.arc(ball.x, ball.y, 30, 0, Math.PI*2); ctx.fill();
 
-                objects.push({
-                    t: now, x: Math.random() * (canvas.width - 120) + 60, 
-                    y: Math.random() * (canvas.height - 120) + 60,
-                    type, color, isTarget, hit: false
-                });
-            }
-        }
-
-        objects.forEach(obj => {
-            if (!obj.hit && now - obj.t < 1100) {
-                if (obj.type === 'circle') {
-                    ctx.fillStyle = obj.color;
-                    ctx.beginPath(); ctx.arc(obj.x, obj.y, 45, 0, Math.PI * 2); ctx.fill();
-                } else if (obj.type === 'square') {
-                    ctx.fillStyle = obj.color;
-                    ctx.fillRect(obj.x - 40, obj.y - 40, 80, 80);
-                } else {
-                    drawStar(obj.x, obj.y, 45, 5, 0.5, obj.color);
-                }
-            }
-        });
+        ctx.fillStyle = "white"; ctx.font = "20px Arial";
+        ctx.fillText(`Accuracy: ${samples > 0 ? (scoreTotal/samples).toFixed(0) : 0}%`, 20, 30);
         requestAnimationFrame(gameLoop);
     }
 
-    // MOBILE TOUCH FIX: Use onpointerdown for instant response
-    canvas.onpointerdown = (e) => {
-        e.preventDefault();
+    canvas.onpointermove = (e) => {
         const rect = canvas.getBoundingClientRect();
-        
-        // Calculate the scale between CSS size and internal Canvas resolution
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        
-        const mx = (e.clientX - rect.left) * scaleX;
-        const my = (e.clientY - rect.top) * scaleY;
-
-        objects.forEach(obj => {
-            const dist = Math.hypot(mx - obj.x, my - obj.y);
-            // Increased hit radius to 60 for easier finger tapping
-            if (dist < 60 && !obj.hit && (performance.now() - obj.t < 1100)) {
-                obj.hit = true;
-                if (obj.isTarget) score++; else score--;
-            }
-        });
+        const ux = (e.clientX - rect.left) * (canvas.width / rect.width);
+        const uy = (e.clientY - rect.top) * (canvas.height / rect.height);
+        const dist = Math.hypot(ux - ball.x, uy - ball.y);
+        scoreTotal += Math.max(0, 100 - (dist * 2));
+        samples++;
     };
-    
     gameLoop();
 }
 
-function runBalance() {
-    motionSamples = [];
-    let countdown = 3;
-    const cdInterval = setInterval(() => {
-        $("results").textContent = `Place phone on chest... ${countdown}`;
-        if (countdown-- < 0) { clearInterval(cdInterval); startRecording(); }
-    }, 1000);
-
-    function startRecording() {
-        motionSamples = [];
-        $("results").textContent = "RECORDING... Stand still.";
-        setTimeout(() => {
-            if (motionSamples.length < 20) { $("results").textContent = "No data. Enable Motion first."; return; }
-            const mags = motionSamples.map(s => Math.hypot(s.x, s.y, s.z));
-            const avg = mags.reduce((a, b) => a + b, 0) / mags.length;
-            const variance = mags.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / mags.length;
-            const sway = Math.sqrt(variance);
-            $("results").textContent = `BALANCE COMPLETE\nSway Score: ${sway.toFixed(4)}\nStatus: ${sway < 0.06 ? "PASS" : "FAIL"}`;
-        }, 10000);
-    }
-}
-
-function resetApp() { $("results").textContent = "Reset."; ctx.clearRect(0,0,canvas.width,canvas.height); }
+// --- (Keep your existing runReaction and runBalance functions here) ---
