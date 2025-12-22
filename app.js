@@ -7,9 +7,9 @@ window.addEventListener('DOMContentLoaded', () => {
     ctx = canvas.getContext("2d");
     
     $("btnPerms").onclick = enableMotion;
-    $("btnReaction").onclick = () => showOverlay("Reaction Test", "TAP: Green Circles/Stars/Squares. IGNORE: Red and Yellow.", runReaction);
-    $("btnBalance").onclick = () => showOverlay("Balance Test", "Hold phone to chest and stand still.", runBalance);
-    $("btnTrailing").onclick = () => showOverlay("Trailing Track", "Trace the tail! Follow the ball with your finger.", runTrailing);
+    $("btnReaction").onclick = () => showOverlay("Reaction Test", "TAP: Green Circles/Stars/Squares & Blue Stars/Squares. IGNORE: Red and Yellow.", runReaction);
+    $("btnBalance").onclick = () => showOverlay("Balance Test", "Hold phone to chest and stand still. Starts in 3s.", runBalance);
+    $("btnTrailing").onclick = () => showOverlay("Trailing Track", "Trace the shooting star! Follow the tail with your finger.", runTrailing);
     $("btnReset").onclick = resetApp;
 });
 
@@ -41,12 +41,12 @@ async function enableMotion() {
     } catch (e) { alert("Sensors blocked."); }
 }
 
-// --- TRAILING TRACK (Shooting Star Version) ---
+// --- SHOOTING STAR TRAILING TRACK ---
 function runTrailing() {
-    const duration = 30000;
+    const duration = 45000; // Increased to 45s to match reaction test
     const start = performance.now();
-    let ball = { x: 450, y: 270, vx: 5, vy: 5 };
-    let trail = []; // Stores previous positions for the "star tail"
+    let ball = { x: 450, y: 270, vx: 4, vy: 4 }; // Slightly slowed for fairness
+    let trail = []; 
     let scoreTotal = 0, samples = 0;
 
     function gameLoop() {
@@ -56,59 +56,123 @@ function runTrailing() {
 
         if (now - start > duration) {
             const accuracy = samples > 0 ? (scoreTotal / samples).toFixed(1) : 0;
-            const passed = accuracy >= 30; // 30% passing threshold
-            $("results").textContent = `TRAILING COMPLETE\nAccuracy: ${accuracy}%\nStatus: ${passed ? "PASS" : "FAIL"}`;
+            const passed = accuracy >= 25; // UPDATED PASSING THRESHOLD
+            $("results").textContent = `TRAILING COMPLETE\nAccuracy: ${accuracy}%\nStatus: ${passed ? "PASS" : "FAIL"}\n(Req: 25%)`;
             $("results").style.color = passed ? "#34d399" : "#fb7185";
             canvas.onpointermove = null;
             return;
         }
 
-        // Move Ball
         ball.x += ball.vx; ball.y += ball.vy;
         if (ball.x < 50 || ball.x > canvas.width - 50) ball.vx *= -1;
         if (ball.y < 50 || ball.y > canvas.height - 50) ball.vy *= -1;
-        if (Math.random() < 0.02) { ball.vx = (Math.random()-0.5)*12; ball.vy = (Math.random()-0.5)*12; }
+        
+        // Randomize direction occasionally
+        if (Math.random() < 0.015) { 
+            ball.vx = (Math.random()-0.5)*10; 
+            ball.vy = (Math.random()-0.5)*10; 
+        }
 
-        // Update shooting star trail
+        // Update trail for the shooting star effect
         trail.push({x: ball.x, y: ball.y});
-        if (trail.length > 20) trail.shift(); // Length of the tail
+        if (trail.length > 15) trail.shift();
 
-        // Draw the "Shooting Star" tail
+        // Draw Fading Tail
         trail.forEach((p, i) => {
             const opacity = i / trail.length;
-            const size = (i / trail.length) * 20;
-            ctx.fillStyle = `rgba(59, 130, 246, ${opacity})`; // Fading blue
-            ctx.beginPath(); ctx.arc(p.x, p.y, size, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = `rgba(59, 130, 246, ${opacity})`;
+            ctx.beginPath(); ctx.arc(p.x, p.y, (i/trail.length)*20, 0, Math.PI*2); ctx.fill();
         });
 
-        // Draw Head of the Star
-        ctx.fillStyle = "#22c55e"; // Green head
-        ctx.beginPath(); ctx.arc(ball.x, ball.y, 25, 0, Math.PI * 2); ctx.fill();
+        // Draw Head
+        ctx.fillStyle = "#22c55e";
+        ctx.beginPath(); ctx.arc(ball.x, ball.y, 25, 0, Math.PI*2); ctx.fill();
 
-        ctx.fillStyle = "white"; ctx.font = "24px Arial";
-        ctx.fillText(`Accuracy: ${samples > 0 ? (scoreTotal/samples).toFixed(0) : 0}%  Time: ${remaining}s`, 20, 40);
+        ctx.fillStyle = "white"; ctx.font = "20px Arial";
+        ctx.fillText(`Accuracy: ${samples > 0 ? (scoreTotal/samples).toFixed(0) : 0}%  Time: ${remaining}s`, 20, 30);
         requestAnimationFrame(gameLoop);
     }
 
-    // Pointer events handle both touch and mouse instantly
     canvas.onpointermove = (e) => {
-        e.preventDefault(); // Extra layer of protection against scrolling
         const rect = canvas.getBoundingClientRect();
         const ux = (e.clientX - rect.left) * (canvas.width / rect.width);
         const uy = (e.clientY - rect.top) * (canvas.height / rect.height);
         
-        // Check distance to the ball OR any part of the tail
-        let bestDist = Math.hypot(ux - ball.x, uy - ball.y);
-        trail.forEach(p => {
-            const d = Math.hypot(ux - p.x, uy - p.y);
-            if (d < bestDist) bestDist = d;
-        });
-
-        scoreTotal += Math.max(0, 100 - (bestDist * 2));
+        // Distance check for scoring
+        const dist = Math.hypot(ux - ball.x, uy - ball.y);
+        scoreTotal += Math.max(0, 100 - (dist * 1.8)); // Calibrated for tablet touch
         samples++;
     };
     gameLoop();
 }
 
+// --- REACTION TEST ---
+function runReaction() {
+    const duration = 45000;
+    const start = performance.now();
+    let objects = [];
+    let lastSpawn = 0;
+    let score = 0;
+
+    function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let now = performance.now();
+        if (now - start > duration) {
+            const passed = score >= 15;
+            $("results").textContent = `REACTION COMPLETE\nScore: ${score}\nStatus: ${passed ? "PASS" : "FAIL"}`;
+            $("results").style.color = passed ? "#34d399" : "#fb7185";
+            return;
+        }
+        if (now - lastSpawn > 900) {
+            lastSpawn = now;
+            const count = Math.floor(Math.random() * 2) + 1;
+            for(let i=0; i<count; i++) {
+                const colors = ['#22c55e', '#ef4444', '#facc15', '#3b82f6'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                objects.push({t: now, x: Math.random()*800+50, y: Math.random()*440+50, color, hit: false, isTarget: color==='#22c55e'||color==='#3b82f6'});
+            }
+        }
+        objects.forEach(o => {
+            if (!o.hit && now - o.t < 1100) {
+                ctx.fillStyle = o.color;
+                ctx.beginPath(); ctx.arc(o.x, o.y, 40, 0, Math.PI*2); ctx.fill();
+            }
+        });
+        requestAnimationFrame(gameLoop);
+    }
+    canvas.onpointerdown = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+        const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+        objects.forEach(o => {
+            if (!o.hit && Math.hypot(mx - o.x, my - o.y) < 55) {
+                o.hit = true;
+                if (o.isTarget) score++; else score--;
+            }
+        });
+    };
+    gameLoop();
+}
+
+// --- BALANCE TEST ---
+function runBalance() {
+    motionSamples = [];
+    let countdown = 3;
+    const cd = setInterval(() => {
+        $("results").textContent = `Ready in... ${countdown}`;
+        if (countdown-- <= 0) { clearInterval(cd); startRec(); }
+    }, 1000);
+    function startRec() {
+        motionSamples = [];
+        $("results").textContent = "RECORDING... Stand still.";
+        setTimeout(() => {
+            if (motionSamples.length < 20) { $("results").textContent = "Error: No data."; return; }
+            const mags = motionSamples.map(s => Math.hypot(s.x, s.y, s.z));
+            const avg = mags.reduce((a,b)=>a+b)/mags.length;
+            const sway = Math.sqrt(mags.reduce((a,b)=>a+Math.pow(b-avg,2),0)/mags.length);
+            $("results").textContent = `BALANCE COMPLETE\nSway Score: ${sway.toFixed(4)}\nStatus: ${sway < 0.08 ? "PASS" : "FAIL"}`;
+        }, 10000);
+    }
+}
+
 function resetApp() { $("results").textContent = "Reset."; ctx.clearRect(0,0,canvas.width,canvas.height); }
-// ... (Include your existing runReaction and runBalance functions)
