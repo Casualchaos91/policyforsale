@@ -40,7 +40,7 @@ window.addEventListener('load', () => {
         } catch (e) { alert("Sensors blocked."); }
     });
 
-    wire("btnReaction", () => showOverlay("Selective Reaction", "Tap GREEN only. Others are -2 points!", runReaction));
+    wire("btnReaction", () => showOverlay("Selective Reaction", "Tap GREEN only. All other colors are -2 points!", runReaction));
     wire("btnPuzzle", () => showOverlay("Numerical Puzzle", "Stack 1-5 in order by color boxes.", runPuzzle));
     wire("btnDog", () => showOverlay("Dog Memory", "Memorize for 8s. Reassemble in 7s.", runDogPuzzle));
     wire("btnTrailing", () => showOverlay("Trailing Track", "Trace the shooting star tail.", runTrailing));
@@ -100,35 +100,62 @@ window.addEventListener('load', () => {
         loop();
     }
 
-    // --- 2. SOLVABLE TILT MAZE (7/10 Difficulty) ---
+    // --- 2. FIXED SOLVABLE TILT MAZE ---
     function runMaze() {
         const start = performance.now();
         const duration = 60000;
         let ball = { x: 40, y: 40, r: 10, vx: 0, vy: 0 };
         const goal = { x: 850, y: 500, r: 25 };
+        
+        // Horizontal floors with alternating gaps. 
+        // No vertical walls that could block the path completely.
         const walls = [
-            [0, 100, 800, 15], [100, 200, 800, 15], [0, 300, 800, 15], 
-            [100, 400, 800, 15], [450, 100, 15, 100], [250, 300, 15, 100]
+            [0, 100, 800, 15],   // Gap on Right (800-900)
+            [100, 200, 800, 15], // Gap on Left (0-100)
+            [0, 300, 800, 15],   // Gap on Right
+            [100, 400, 800, 15], // Gap on Left
         ];
+
         function loop() {
             ctx.clearRect(0,0,canvas.width,canvas.height);
             let now = performance.now(), elapsed = now - start;
             let rem = Math.max(0, ((duration - elapsed)/1000).toFixed(1));
+
             if (elapsed > duration) { $("results").textContent = "MAZE FAIL: TIME"; $("results").style.color = "#f43f5e"; return; }
-            ball.vx += (tilt.x || 0) * 0.07; ball.vy += (tilt.y || 0) * 0.07;
+
+            ball.vx += (tilt.x || 0) * 0.07;
+            ball.vy += (tilt.y || 0) * 0.07;
             ball.vx *= 0.94; ball.vy *= 0.94;
-            let nX = ball.x + ball.vx, nY = ball.y + ball.vy;
+
+            let nX = ball.x + ball.vx;
+            let nY = ball.y + ball.vy;
+
             let hit = false;
-            walls.forEach(w => { if (nX+ball.r > w[0] && nX-ball.r < w[0]+w[2] && nY+ball.r > w[1] && nY-ball.r < w[1]+w[3]) hit = true; });
-            if (hit) { ball.x = 40; ball.y = 40; ball.vx = 0; ball.vy = 0; }
-            else { ball.x = Math.max(ball.r, Math.min(900-ball.r, nX)); ball.y = Math.max(ball.r, Math.min(540-ball.r, nY)); }
+            walls.forEach(w => {
+                if (nX+ball.r > w[0] && nX-ball.r < w[0]+w[2] && 
+                    nY+ball.r > w[1] && nY-ball.r < w[1]+w[3]) hit = true;
+            });
+
+            if (hit) {
+                ball.x = 40; ball.y = 40; ball.vx = 0; ball.vy = 0;
+            } else {
+                ball.x = Math.max(ball.r, Math.min(900-ball.r, nX));
+                ball.y = Math.max(ball.r, Math.min(540-ball.r, nY));
+            }
+
+            // Draw Goal
             ctx.fillStyle = "#ef4444"; ctx.beginPath(); ctx.arc(goal.x, goal.y, goal.r, 0, Math.PI*2); ctx.fill();
+            // Draw Walls
             ctx.fillStyle = "#4b5563"; walls.forEach(w => ctx.fillRect(w[0], w[1], w[2], w[3]));
+            // Draw Ball
             ctx.fillStyle = "#3b82f6"; ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.fill();
+
             if (Math.hypot(ball.x - goal.x, ball.y - goal.y) < goal.r) {
                 $("results").textContent = `MAZE PASS: ${rem}s left`; $("results").style.color = "#34d399"; return;
             }
-            ctx.fillStyle = "white"; ctx.font = "20px Arial"; ctx.fillText(`Time: ${rem}s`, 20, 30);
+
+            ctx.fillStyle = "white"; ctx.font = "20px Arial";
+            ctx.fillText(`Time: ${rem}s`, 20, 30);
             requestAnimationFrame(loop);
         }
         loop();
