@@ -6,17 +6,12 @@ window.addEventListener('load', () => {
     const overlay = $("overlay");
     let motionSamples = [];
 
-    // --- FIXED OVERLAY LOGIC ---
     function showOverlay(title, text, startFn) {
         $("overlayTitle").textContent = title;
         $("overlayText").textContent = text;
-        
-        // Ensure overlay is visible
         overlay.classList.remove("hidden");
         overlay.style.display = "flex"; 
-
         $("overlayStart").onclick = () => {
-            // Force hide overlay
             overlay.classList.add("hidden");
             overlay.style.display = "none"; 
             startFn();
@@ -39,7 +34,6 @@ window.addEventListener('load', () => {
         } catch (e) { alert("Sensors blocked."); }
     });
 
-    // Test Wiring
     wire("btnReaction", () => showOverlay("Reaction", "Tap Green/Blue. (Need 15 to Pass)", runReaction));
     wire("btnBalance", () => showOverlay("Balance", "Hold phone still against chest.", runBalance));
     wire("btnTrailing", () => showOverlay("Trailing", "Trace the shooting star tail.", runTrailing));
@@ -110,7 +104,7 @@ window.addEventListener('load', () => {
         loop();
     }
 
-    // --- 2. DOG MEMORY PUZZLE (7s RUN) ---
+    // --- 2. DOG MEMORY PUZZLE ---
     function drawDogPart(x, y, part, color = "white") {
         ctx.fillStyle = color; ctx.beginPath();
         if (part === "body") { ctx.ellipse(x, y, 100, 60, 0, 0, Math.PI * 2); ctx.ellipse(x - 80, y - 40, 40, 50, 0, 0, Math.PI * 2); }
@@ -199,36 +193,72 @@ window.addEventListener('load', () => {
         loop();
     }
 
-    // --- 4. REACTION ---
+    // --- 4. REACTION (FIXED SPAWN BUG) ---
     function runReaction() {
         const start = performance.now();
         const duration = 50000;
-        let objs = [], last = 0, score = 0, totalSpawned = 0;
+        let objs = [], lastSpawn = 0, score = 0;
+        
+        // 2% Slower than 650ms is ~663ms
+        const spawnInterval = 663; 
+
         function loop() {
             ctx.clearRect(0,0,canvas.width,canvas.height);
             let now = performance.now();
-            if (now-start > duration) { 
+            let elapsed = now - start;
+
+            if (elapsed > duration) { 
                 const pass = score >= 15;
-                $("results").textContent = pass ? `REACTION: PASS (${score}/24)` : `HIGH RISK DRIVER: REACTION FAIL (${score}/24)`;
+                $("results").textContent = pass ? `REACTION: PASS (${score} hits)` : `HIGH RISK DRIVER: REACTION FAIL (${score} hits)`;
                 $("results").style.color = pass ? "#34d399" : "#f43f5e";
                 return; 
             }
-            if (now - last > 650 && totalSpawned < 24) {
-                last = now;
+
+            // Continuous spawning logic
+            if (now - lastSpawn > spawnInterval) {
+                lastSpawn = now;
                 const colors = ['#22c55e','#3b82f6','#ef4444','#facc15'];
                 const color = colors[Math.floor(Math.random()*4)];
-                objs.push({x: Math.random()*800+50, y: Math.random()*440+50, t: now, color, target: color==='#22c55e'||color==='#3b82f6'});
-                totalSpawned++;
+                objs.push({
+                    x: Math.random()*800+50, 
+                    y: Math.random()*400+70, 
+                    t: now, 
+                    color, 
+                    target: (color==='#22c55e'||color==='#3b82f6'),
+                    clicked: false
+                });
             }
-            objs.forEach(o => { if(now-o.t < 980) { ctx.fillStyle = o.color; ctx.beginPath(); ctx.arc(o.x, o.y, 40, 0, Math.PI*2); ctx.fill(); }});
-            ctx.fillStyle = "white"; ctx.font = "20px Arial";
-            ctx.fillText(`Hits: ${score} | Time: ${((duration-(now-start))/1000).toFixed(0)}s`, 20, 30);
+
+            // Draw and Filter objects
+            objs = objs.filter(o => !o.clicked && (now - o.t < 1000));
+            objs.forEach(o => {
+                ctx.fillStyle = o.color;
+                ctx.beginPath();
+                ctx.arc(o.x, o.y, 40, 0, Math.PI*2);
+                ctx.fill();
+            });
+
+            // HUD
+            ctx.fillStyle = "white";
+            ctx.font = "bold 20px Arial";
+            ctx.textAlign = "left";
+            ctx.fillText(`Score: ${score} (Need 15)`, 20, 40);
+            ctx.fillText(`Time Left: ${((duration - elapsed)/1000).toFixed(1)}s`, 20, 70);
+
             requestAnimationFrame(loop);
         }
+
         canvas.onpointerdown = (e) => {
             const rect = canvas.getBoundingClientRect();
-            const mx = (e.clientX-rect.left)*(900/rect.width), my = (e.clientY-rect.top)*(540/rect.height);
-            objs.forEach(o => { if(Math.hypot(mx-o.x, my-o.y) < 50 && (performance.now()-o.t < 980)) { o.t = 0; if(o.target) score++; else score--; }});
+            const mx = (e.clientX-rect.left)*(900/rect.width);
+            const my = (e.clientY-rect.top)*(540/rect.height);
+            
+            objs.forEach(o => {
+                if (Math.hypot(mx-o.x, my-o.y) < 45) {
+                    o.clicked = true;
+                    if(o.target) score++; else score = Math.max(0, score - 1);
+                }
+            });
         };
         loop();
     }
