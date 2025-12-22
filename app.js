@@ -34,7 +34,7 @@ window.addEventListener('load', () => {
         } catch (e) { alert("Sensors blocked."); }
     });
 
-    wire("btnReaction", () => showOverlay("Reaction", "Tap Green/Blue. (Need 15 to Pass)", runReaction));
+    wire("btnReaction", () => showOverlay("Reaction", "Tap GREEN only. Others are -2 points!", runReaction));
     wire("btnBalance", () => showOverlay("Balance", "Hold phone still against chest.", runBalance));
     wire("btnTrailing", () => showOverlay("Trailing", "Trace the shooting star tail.", runTrailing));
     wire("btnPuzzle", () => showOverlay("Numerical Puzzle", "Stack 1-5 in order by color.", runPuzzle));
@@ -45,7 +45,7 @@ window.addEventListener('load', () => {
         $("results").style.color = "white"; 
     });
 
-    // --- 1. NUMERICAL SQUARE PUZZLE (96px) ---
+    // --- 1. NUMERICAL SQUARE PUZZLE ---
     function runPuzzle() {
         const duration = 35000; const start = performance.now();
         let pieces = [], selected = null; const w = 96, h = 96;
@@ -193,12 +193,21 @@ window.addEventListener('load', () => {
         loop();
     }
 
-    // --- 4. REACTION (FORCED 24 TOTAL SPAWNS) ---
+    // --- 4. REACTION (120 BALLS - 24 GREEN - ONLY GREEN IS POSITIVE) ---
     function runReaction() {
         const start = performance.now();
         const duration = 50000;
-        let objs = [], lastSpawn = 0, score = 0, targetsSpawned = 0;
-        const spawnInterval = 663; 
+        const totalBalls = 120;
+        const spawnInterval = duration / totalBalls; // ~416ms
+        
+        let objs = [], lastSpawn = 0, score = 0, spawnedCount = 0;
+        
+        let pool = {
+            '#22c55e': 24, // Green (The only target)
+            '#ef4444': 32, // Red
+            '#facc15': 32, // Yellow
+            '#3b82f6': 32  // Blue
+        };
 
         function loop() {
             ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -212,38 +221,39 @@ window.addEventListener('load', () => {
                 return; 
             }
 
-            // MODIFIED SPAWN: If we haven't hit 24 targets, keep them coming
-            if (now - lastSpawn > spawnInterval) {
+            if (now - lastSpawn > spawnInterval && spawnedCount < totalBalls) {
                 lastSpawn = now;
+                spawnedCount++;
+                
+                let availableColors = Object.keys(pool).filter(c => pool[c] > 0);
                 let color;
-                if (targetsSpawned < 24) {
-                    // Targets: Green/Blue
-                    color = Math.random() > 0.5 ? '#22c55e' : '#3b82f6';
-                    targetsSpawned++;
+                
+                // Ensure all 24 greens are out by 35s
+                if (elapsed > 30000 && pool['#22c55e'] > 0) {
+                    color = '#22c55e';
                 } else {
-                    // Distractors: Red/Yellow
-                    color = Math.random() > 0.5 ? '#ef4444' : '#facc15';
+                    color = availableColors[Math.floor(Math.random() * availableColors.length)];
                 }
 
+                pool[color]--;
                 objs.push({
                     x: Math.random()*700+100, 
                     y: Math.random()*300+120, 
                     t: now, 
                     color, 
-                    target: (color==='#22c55e'||color==='#3b82f6'),
+                    target: (color==='#22c55e'), 
                     clicked: false
                 });
             }
 
-            // Balls stay on screen longer (1.2s) to ensure they can be hit
-            objs = objs.filter(o => !o.clicked && (now - o.t < 1200));
+            objs = objs.filter(o => !o.clicked && (now - o.t < 1100));
             objs.forEach(o => {
                 ctx.fillStyle = o.color; ctx.beginPath(); ctx.arc(o.x, o.y, 45, 0, Math.PI*2); ctx.fill();
             });
 
             ctx.fillStyle = "white"; ctx.font = "bold 20px Arial"; ctx.textAlign = "left";
-            ctx.fillText(`Score: ${score} (Need 15)`, 20, 40);
-            ctx.fillText(`Targets Spawned: ${targetsSpawned}/24`, 20, 70);
+            ctx.fillText(`Score: ${score} (Goal: 15)`, 20, 40);
+            ctx.fillText(`Green Targets Remaining: ${pool['#22c55e']}`, 20, 70);
             ctx.fillText(`Time Left: ${((duration - elapsed)/1000).toFixed(1)}s`, 20, 100);
 
             requestAnimationFrame(loop);
@@ -257,8 +267,11 @@ window.addEventListener('load', () => {
             objs.forEach(o => {
                 if (Math.hypot(mx-o.x, my-o.y) < 55) {
                     o.clicked = true;
-                    if(o.target) score++; 
-                    else score = Math.max(0, score - 2); 
+                    if(o.target) {
+                        score++; 
+                    } else {
+                        score = Math.max(0, score - 2); // -2 Penalty for RED, YELLOW, or BLUE
+                    }
                 }
             });
         };
