@@ -193,13 +193,11 @@ window.addEventListener('load', () => {
         loop();
     }
 
-    // --- 4. REACTION (FIXED SPAWN BUG) ---
+    // --- 4. REACTION (UPDATED PENALTY: -2) ---
     function runReaction() {
         const start = performance.now();
         const duration = 50000;
         let objs = [], lastSpawn = 0, score = 0;
-        
-        // 2% Slower than 650ms is ~663ms
         const spawnInterval = 663; 
 
         function loop() {
@@ -214,7 +212,6 @@ window.addEventListener('load', () => {
                 return; 
             }
 
-            // Continuous spawning logic
             if (now - lastSpawn > spawnInterval) {
                 lastSpawn = now;
                 const colors = ['#22c55e','#3b82f6','#ef4444','#facc15'];
@@ -229,19 +226,12 @@ window.addEventListener('load', () => {
                 });
             }
 
-            // Draw and Filter objects
             objs = objs.filter(o => !o.clicked && (now - o.t < 1000));
             objs.forEach(o => {
-                ctx.fillStyle = o.color;
-                ctx.beginPath();
-                ctx.arc(o.x, o.y, 40, 0, Math.PI*2);
-                ctx.fill();
+                ctx.fillStyle = o.color; ctx.beginPath(); ctx.arc(o.x, o.y, 40, 0, Math.PI*2); ctx.fill();
             });
 
-            // HUD
-            ctx.fillStyle = "white";
-            ctx.font = "bold 20px Arial";
-            ctx.textAlign = "left";
+            ctx.fillStyle = "white"; ctx.font = "bold 20px Arial"; ctx.textAlign = "left";
             ctx.fillText(`Score: ${score} (Need 15)`, 20, 40);
             ctx.fillText(`Time Left: ${((duration - elapsed)/1000).toFixed(1)}s`, 20, 70);
 
@@ -256,7 +246,8 @@ window.addEventListener('load', () => {
             objs.forEach(o => {
                 if (Math.hypot(mx-o.x, my-o.y) < 45) {
                     o.clicked = true;
-                    if(o.target) score++; else score = Math.max(0, score - 1);
+                    if(o.target) score++; 
+                    else score = Math.max(0, score - 2); // INCREASED PENALTY
                 }
             });
         };
