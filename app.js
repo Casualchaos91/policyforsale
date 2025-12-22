@@ -11,7 +11,7 @@ window.addEventListener('load', () => {
         $("overlayText").textContent = text;
         ov.classList.remove("hidden");
         ov.style.display = "flex";
-        $("overlayStart").onclick = () => { ov.style.display = "none"; startFn(); };
+        $("overlayStart").onclick = () => { ov.classList.add("hidden"); startFn(); };
     }
 
     const wire = (id, fn) => { if ($(id)) $(id).onclick = fn; };
@@ -33,15 +33,14 @@ window.addEventListener('load', () => {
     wire("btnReaction", () => showOverlay("Reaction", "Tap Green/Blue. (Need 15 to Pass)", runReaction));
     wire("btnBalance", () => showOverlay("Balance", "Hold phone still against chest.", runBalance));
     wire("btnTrailing", () => showOverlay("Trailing", "Trace the shooting star tail.", runTrailing));
-    wire("btnPuzzle", () => showOverlay("Numerical Puzzle", "Stack 1-5 in order.", runPuzzle));
+    wire("btnPuzzle", () => showOverlay("Numerical Puzzle", "Stack 1-5 in order by color.", runPuzzle));
     wire("btnDog", () => showOverlay("Dog Memory", "Memorize for 8s. Reassemble in 7s.", runDogPuzzle));
-    wire("btnReset", () => { ctx.clearRect(0,0,canvas.width,canvas.height); $("results").textContent = "Waiting..."; });
+    wire("btnReset", () => { ctx.clearRect(0,0,canvas.width,canvas.height); $("results").textContent = "Waiting..."; $("results").style.color = "white"; });
 
-    // --- 1. NUMERICAL SQUARE PUZZLE (SIZE INCREASED TO 96) ---
+    // --- 1. NUMERICAL SQUARE PUZZLE (96px) ---
     function runPuzzle() {
         const duration = 35000; const start = performance.now();
-        let pieces = [], selected = null; 
-        const w = 96, h = 96; // Increased size by ~4%
+        let pieces = [], selected = null; const w = 96, h = 96;
         const zones = {
             '#22c55e': { x: 80, y: 120, label: "GREEN" },
             '#ef4444': { x: 280, y: 120, label: "RED" },
@@ -49,7 +48,6 @@ window.addEventListener('load', () => {
         };
         ['#22c55e','#ef4444','#facc15'].forEach((color) => {
             for(let i=0; i<5; i++) {
-                // ty adjusted slightly for 96px height spacing
                 pieces.push({ color, num: i+1, tx: zones[color].x, ty: zones[color].y+(i*48), locked: false });
             }
         });
@@ -67,7 +65,6 @@ window.addEventListener('load', () => {
             }
             Object.keys(zones).forEach(key => {
                 const z = zones[key]; ctx.strokeStyle = key; ctx.lineWidth = 2; ctx.setLineDash([5,5]);
-                // Target box adjusted for 96px width
                 ctx.strokeRect(z.x-5, z.y-5, w+10, (5*48)+55); ctx.setLineDash([]);
                 ctx.fillStyle = key; ctx.font = "bold 16px Arial"; ctx.textAlign="center"; ctx.fillText(z.label, z.x+w/2, z.y-15);
             });
@@ -91,7 +88,6 @@ window.addEventListener('load', () => {
             }
         };
         canvas.onpointerup = () => {
-            // Snap distance remains 95 for precision
             if (selected && Math.abs(selected.x-selected.tx)<95 && Math.abs(selected.y-selected.ty)<95) { 
                 selected.x=selected.tx; selected.y=selected.ty; selected.locked=true; 
             }
@@ -100,7 +96,7 @@ window.addEventListener('load', () => {
         loop();
     }
 
-    // --- 2. DOG MEMORY PUZZLE (7s RUN / 95px SNAP) ---
+    // --- 2. DOG MEMORY PUZZLE (7s RUN) ---
     function drawDogPart(x, y, part, color = "white") {
         ctx.fillStyle = color; ctx.beginPath();
         if (part === "body") { ctx.ellipse(x, y, 100, 60, 0, 0, Math.PI * 2); ctx.ellipse(x - 80, y - 40, 40, 50, 0, 0, Math.PI * 2); }
@@ -189,7 +185,7 @@ window.addEventListener('load', () => {
         loop();
     }
 
-    // --- 4. REACTION (24 DOTS / 15 TO PASS) ---
+    // --- 4. REACTION (50s / 15 TO PASS) ---
     function runReaction() {
         const start = performance.now();
         const duration = 50000;
