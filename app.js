@@ -100,20 +100,18 @@ window.addEventListener('load', () => {
         loop();
     }
 
-    // --- 2. FIXED SOLVABLE TILT MAZE ---
+    // --- 2. FIXED SOLVABLE TILT MAZE (1:45 TIME LIMIT) ---
     function runMaze() {
         const start = performance.now();
-        const duration = 60000;
+        const duration = 105000; // Updated to 1 minute 45 seconds
         let ball = { x: 40, y: 40, r: 10, vx: 0, vy: 0 };
         const goal = { x: 850, y: 500, r: 25 };
         
-        // Horizontal floors with alternating gaps. 
-        // No vertical walls that could block the path completely.
         const walls = [
-            [0, 100, 800, 15],   // Gap on Right (800-900)
-            [100, 200, 800, 15], // Gap on Left (0-100)
-            [0, 300, 800, 15],   // Gap on Right
-            [100, 400, 800, 15], // Gap on Left
+            [0, 100, 800, 15], 
+            [100, 200, 800, 15],
+            [0, 300, 800, 15],  
+            [100, 400, 800, 15],
         ];
 
         function loop() {
@@ -121,7 +119,11 @@ window.addEventListener('load', () => {
             let now = performance.now(), elapsed = now - start;
             let rem = Math.max(0, ((duration - elapsed)/1000).toFixed(1));
 
-            if (elapsed > duration) { $("results").textContent = "MAZE FAIL: TIME"; $("results").style.color = "#f43f5e"; return; }
+            if (elapsed > duration) { 
+                $("results").textContent = "MAZE FAIL: TIME"; 
+                $("results").style.color = "#f43f5e"; 
+                return; 
+            }
 
             ball.vx += (tilt.x || 0) * 0.07;
             ball.vy += (tilt.y || 0) * 0.07;
@@ -143,15 +145,14 @@ window.addEventListener('load', () => {
                 ball.y = Math.max(ball.r, Math.min(540-ball.r, nY));
             }
 
-            // Draw Goal
             ctx.fillStyle = "#ef4444"; ctx.beginPath(); ctx.arc(goal.x, goal.y, goal.r, 0, Math.PI*2); ctx.fill();
-            // Draw Walls
             ctx.fillStyle = "#4b5563"; walls.forEach(w => ctx.fillRect(w[0], w[1], w[2], w[3]));
-            // Draw Ball
             ctx.fillStyle = "#3b82f6"; ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.fill();
 
             if (Math.hypot(ball.x - goal.x, ball.y - goal.y) < goal.r) {
-                $("results").textContent = `MAZE PASS: ${rem}s left`; $("results").style.color = "#34d399"; return;
+                $("results").textContent = `MAZE PASS: ${rem}s left`; 
+                $("results").style.color = "#34d399"; 
+                return;
             }
 
             ctx.fillStyle = "white"; ctx.font = "20px Arial";
