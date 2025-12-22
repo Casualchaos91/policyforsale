@@ -16,6 +16,7 @@ window.addEventListener('load', () => {
 
     const wire = (id, fn) => { if ($(id)) $(id).onclick = fn; };
 
+    // --- BUTTON WIRING ---
     wire("btnPerms", async () => {
         try {
             if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
@@ -33,68 +34,53 @@ window.addEventListener('load', () => {
     wire("btnReaction", () => showOverlay("Reaction", "Tap Green/Blue. Ignore Red/Yellow.", runReaction));
     wire("btnBalance", () => showOverlay("Balance", "Hold phone still against chest.", runBalance));
     wire("btnTrailing", () => showOverlay("Trailing", "Trace the shooting star tail.", runTrailing));
-    wire("btnPuzzle", () => showOverlay("Numerical Puzzle", "Stack numbers 1 (top) to 5 (bottom) in the colored zones.", runPuzzle));
-    wire("btnDog", () => showOverlay("Dog Memory", "Memorize for 8s, then reattach the parts.", runDogPuzzle));
+    wire("btnPuzzle", () => showOverlay("Numerical Puzzle", "Stack 1-5 in order. Spawn is randomized!", runPuzzle));
+    wire("btnDog", () => showOverlay("Dog Memory", "Memorize for 8s. Reassemble in 5s!", runDogPuzzle));
     wire("btnReset", () => { ctx.clearRect(0,0,canvas.width,canvas.height); $("results").textContent = "Reset."; });
 
-    // --- 1. NUMERICAL SQUARE PUZZLE (FIXED VISUALS) ---
+    // --- 1. NUMERICAL SQUARE PUZZLE (RANDOMIZED SPAWN) ---
     function runPuzzle() {
         const duration = 35000; const start = performance.now();
         let pieces = [], selected = null; const w = 92, h = 92;
-        
-        // Designated Stacking Zones
         const zones = {
             '#22c55e': { x: 80, y: 120, label: "GREEN" },
             '#ef4444': { x: 280, y: 120, label: "RED" },
             '#facc15': { x: 480, y: 120, label: "YELLOW" }
         };
 
-        ['#22c55e','#ef4444','#facc15'].forEach((color, cIdx) => {
+        ['#22c55e','#ef4444','#facc15'].forEach((color) => {
             for(let i=0; i<5; i++) {
-                pieces.push({
-                    color, num: i+1, 
-                    x: 750, y: 40 + (pieces.length * 28), // Spawn in a neat sidebar stack
-                    tx: zones[color].x, ty: zones[color].y + (i * 45), 
-                    locked: false
-                });
+                pieces.push({ color, num: i+1, tx: zones[color].x, ty: zones[color].y+(i*45), locked: false });
             }
         });
+
+        // SHUFFLE the spawn order
+        pieces = pieces.sort(() => Math.random() - 0.5);
+        pieces.forEach((p, idx) => { p.x = 750; p.y = 40 + (idx * 28); });
 
         function loop() {
             ctx.clearRect(0,0,canvas.width,canvas.height);
             let rem = Math.max(0, ((duration - (performance.now()-start))/1000).toFixed(1));
-            
             if (rem <= 0 || pieces.every(p=>p.locked)) {
-                const passed = pieces.every(p=>p.locked);
-                $("results").textContent = `PUZZLE: ${passed?"PASS":"FAIL"}`;
-                $("results").style.color = passed ? "#34d399" : "#fb7185";
+                const pass = pieces.every(p=>p.locked);
+                $("results").textContent = `PUZZLE: ${pass?"PASS":"FAIL"}`;
+                $("results").style.color = pass ? "#34d399" : "#fb7185";
                 return;
             }
-
-            // Draw Target "Pedestals"
+            // Draw visual pedestals
             Object.keys(zones).forEach(key => {
-                const z = zones[key];
-                ctx.strokeStyle = key; ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
-                ctx.strokeRect(z.x - 5, z.y - 5, w + 10, (5 * 45) + 55);
-                ctx.setLineDash([]);
-                ctx.fillStyle = key; ctx.font = "bold 16px Arial"; ctx.textAlign="center";
-                ctx.fillText(z.label, z.x + w/2, z.y - 15);
+                const z = zones[key]; ctx.strokeStyle = key; ctx.lineWidth = 2; ctx.setLineDash([5,5]);
+                ctx.strokeRect(z.x-5, z.y-5, w+10, (5*45)+55); ctx.setLineDash([]);
+                ctx.fillStyle = key; ctx.font = "bold 16px Arial"; ctx.textAlign="center"; ctx.fillText(z.label, z.x+w/2, z.y-15);
             });
-
-            // Draw Pieces
-            pieces.sort((a,b) => a.locked - b.locked).forEach(p => {
+            pieces.slice().sort((a,b)=>a.locked-b.locked).forEach(p => {
                 ctx.fillStyle = p.color; ctx.globalAlpha = p.locked ? 1.0 : 0.8;
-                ctx.fillRect(p.x, p.y, w, h);
-                ctx.strokeStyle = "white"; ctx.strokeRect(p.x, p.y, w, h);
-                ctx.fillStyle = "black"; ctx.font = "bold 28px Arial"; ctx.textAlign="center";
-                ctx.fillText(p.num, p.x+w/2, p.y+h/2+10);
+                ctx.fillRect(p.x, p.y, w, h); ctx.strokeStyle = "white"; ctx.strokeRect(p.x, p.y, w, h);
+                ctx.fillStyle = "black"; ctx.font = "bold 28px Arial"; ctx.textAlign="center"; ctx.fillText(p.num, p.x+w/2, p.y+h/2+10);
             });
-
-            ctx.globalAlpha = 1.0; ctx.fillStyle = "white"; ctx.textAlign="left";
-            ctx.fillText(`Time: ${rem}s`, 20, 30);
+            ctx.globalAlpha = 1.0; ctx.fillStyle = "white"; ctx.textAlign="left"; ctx.fillText(`Time: ${rem}s`, 20, 30);
             requestAnimationFrame(loop);
         }
-
         canvas.onpointerdown = (e) => {
             const rect = canvas.getBoundingClientRect();
             const mx = (e.clientX-rect.left)*(900/rect.width), my = (e.clientY-rect.top)*(540/rect.height);
@@ -107,9 +93,7 @@ window.addEventListener('load', () => {
             }
         };
         canvas.onpointerup = () => {
-            if (selected && Math.abs(selected.x-selected.tx)<90 && Math.abs(selected.y-selected.ty)<90) { 
-                selected.x=selected.targetX || selected.tx; selected.y=selected.targetY || selected.ty; selected.locked=true; 
-            }
+            if (selected && Math.abs(selected.x-selected.tx)<90 && Math.abs(selected.y-selected.ty)<90) { selected.x=selected.tx; selected.y=selected.ty; selected.locked=true; }
             selected = null;
         };
         loop();
@@ -118,28 +102,22 @@ window.addEventListener('load', () => {
     // --- 2. DOG MEMORY PUZZLE ---
     function drawDogPart(x, y, part, color = "white") {
         ctx.fillStyle = color; ctx.beginPath();
-        if (part === "body") {
-            ctx.ellipse(x, y, 100, 60, 0, 0, Math.PI * 2);
-            ctx.ellipse(x - 80, y - 40, 40, 50, 0, 0, Math.PI * 2);
-        } else if (part === "ear") {
-            ctx.moveTo(x, y); ctx.lineTo(x + 15, y - 40); ctx.lineTo(x + 30, y);
-        } else if (part === "tail") {
-            ctx.moveTo(x,y); ctx.quadraticCurveTo(x + 40, y - 60, x + 80, y - 20); 
-            ctx.lineWidth = 15; ctx.strokeStyle = color; ctx.stroke(); return;
-        } else if (part === "leg") {
-            ctx.fillRect(x, y, 20, 50);
-        }
+        if (part === "body") { ctx.ellipse(x, y, 100, 60, 0, 0, Math.PI * 2); ctx.ellipse(x - 80, y - 40, 40, 50, 0, 0, Math.PI * 2); }
+        else if (part === "ear") { ctx.moveTo(x, y); ctx.lineTo(x + 15, y - 40); ctx.lineTo(x + 30, y); }
+        else if (part === "tail") { ctx.moveTo(x,y); ctx.quadraticCurveTo(x + 40, y - 60, x + 80, y - 20); ctx.lineWidth = 15; ctx.strokeStyle = color; ctx.stroke(); return; }
+        else if (part === "leg") { ctx.fillRect(x, y, 20, 50); }
         ctx.fill();
     }
 
     function runDogPuzzle() {
+        const memTime = 8000; const runTime = 5000;
         const start = performance.now();
-        let isMemorizing = true;
+        let isMemorizing = true; let playStart = 0;
         let pieces = [
-            { type: "ear", x: 750, y: 100, tx: 345, ty: 195, locked: false },
-            { type: "tail", x: 750, y: 200, tx: 530, ty: 270, locked: false },
-            { type: "leg", x: 750, y: 350, tx: 400, ty: 330, locked: false },
-            { type: "leg", x: 820, y: 350, tx: 480, ty: 330, locked: false }
+            { type: "ear", x: 700, y: 150, tx: 345, ty: 195, locked: false },
+            { type: "tail", x: 700, y: 250, tx: 530, ty: 270, locked: false },
+            { type: "leg", x: 700, y: 350, tx: 400, ty: 330, locked: false },
+            { type: "leg", x: 780, y: 350, tx: 480, ty: 330, locked: false }
         ];
         let selected = null;
         function loop() {
@@ -148,13 +126,20 @@ window.addEventListener('load', () => {
             if (isMemorizing) {
                 ctx.fillStyle="white"; ctx.font="24px Arial"; ctx.fillText(`Memorize! ${(8-(now-start)/1000).toFixed(1)}s`, 50, 50);
                 drawDogPart(450, 270, "body"); drawDogPart(345, 195, "ear"); drawDogPart(530, 270, "tail"); drawDogPart(400, 330, "leg"); drawDogPart(480, 330, "leg");
-                if (now-start > 8000) isMemorizing = false;
+                if (now-start > memTime) { isMemorizing = false; playStart = now; }
             } else {
-                if (pieces.every(p => p.locked)) { $("results").textContent = "DOG PUZZLE: PASS"; return; }
+                let rem = Math.max(0, ((runTime - (now-playStart))/1000).toFixed(1));
+                if (rem <= 0 || pieces.every(p => p.locked)) {
+                    const pass = pieces.every(p => p.locked);
+                    $("results").textContent = `DOG PUZZLE: ${pass ? "PASS" : "FAIL"}`;
+                    $("results").style.color = pass ? "#34d399" : "#fb7185";
+                    return;
+                }
+                ctx.fillStyle="white"; ctx.font="24px Arial"; ctx.fillText(`Assemble! ${rem}s`, 50, 50);
                 drawDogPart(450, 270, "body", "#222");
                 pieces.forEach(p => drawDogPart(p.x, p.y, p.type, p.locked ? "white" : "#7dd3fc"));
             }
-            if(!pieces.every(p=>p.locked)) requestAnimationFrame(loop);
+            requestAnimationFrame(loop);
         }
         canvas.onpointerdown = (e) => {
             if(isMemorizing) return;
