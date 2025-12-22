@@ -9,7 +9,7 @@ window.addEventListener('DOMContentLoaded', () => {
     $("btnReaction").onclick = () => showOverlay("Reaction", "Tap Green/Blue items. Ignore Red/Yellow.", runReaction);
     $("btnBalance").onclick = () => showOverlay("Balance", "Hold phone to chest, stand still.", runBalance);
     $("btnTrailing").onclick = () => showOverlay("Trailing", "Trace the shooting star tail.", runTrailing);
-    $("btnPuzzle").onclick = () => showOverlay("Spatial Puzzle", "Group colors: Connect 5 Green, 5 Red, and 5 Yellow. Ignore Blue.", runPuzzle);
+    $("btnPuzzle").onclick = () => showOverlay("Numerical Puzzle", "Stack 1-5 in order for Green, Red, and Yellow. Ignore Blue.", runPuzzle);
     $("btnReset").onclick = () => { ctx.clearRect(0,0,canvas.width,canvas.height); $("results").textContent = "Reset."; };
 });
 
@@ -22,7 +22,6 @@ function showOverlay(title, text, startFn) {
     $("overlayStart").onclick = () => { ov.style.display = "none"; startFn(); };
 }
 
-// --- MOTION PERMISSIONS ---
 async function enableMotion() {
     try {
         if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
@@ -37,19 +36,18 @@ async function enableMotion() {
     } catch (e) { alert("Motion sensors blocked."); }
 }
 
-// --- NEW CATEGORY PUZZLE (18 Pieces) ---
+// --- NUMERICAL CATEGORY PUZZLE (35s Limit) ---
 function runPuzzle() {
-    const duration = 60000; // Increased to 60s for 18 pieces
+    const duration = 35000; 
     const start = performance.now();
     let pieces = [];
     let selected = null;
-    const w = 80, h = 80;
+    const w = 92, h = 92; // 15% larger than 80px
 
-    // Define target zones for each color group
     const zones = {
-        '#22c55e': { x: 100, y: 150 }, // Green
-        '#ef4444': { x: 350, y: 150 }, // Red
-        '#facc15': { x: 600, y: 150 }  // Yellow
+        '#22c55e': { x: 100, y: 150 }, 
+        '#ef4444': { x: 350, y: 150 }, 
+        '#facc15': { x: 600, y: 150 }  
     };
 
     const colors = ['#22c55e', '#ef4444', '#facc15'];
@@ -57,19 +55,20 @@ function runPuzzle() {
         for(let i=0; i<5; i++) {
             pieces.push({
                 color: color,
-                x: Math.random() * 700 + 50,
-                y: Math.random() * 300 + 100,
+                num: i + 1,
+                // Spawning more evenly in a side-bar area
+                x: 800, 
+                y: 50 + (pieces.length * 25),
                 targetX: zones[color].x,
-                targetY: zones[color].y + (i * 45), // Vertical stack
+                targetY: zones[color].y + (i * 40), 
                 locked: false,
                 isBlue: false
             });
         }
     });
 
-    // Add 3 Blue Distractors
     for(let i=0; i<3; i++) {
-        pieces.push({ color: '#3b82f6', x: Math.random()*700+50, y: Math.random()*300+100, locked: false, isBlue: true });
+        pieces.push({ color: '#3b82f6', num: 'X', x: 800, y: 450 + (i*30), locked: false, isBlue: true });
     }
 
     function loop() {
@@ -79,23 +78,34 @@ function runPuzzle() {
 
         if (now-start > duration || pieces.filter(p=>!p.isBlue).every(p=>p.locked)) {
             const win = pieces.filter(p=>!p.isBlue).every(p=>p.locked);
-            $("results").textContent = `PUZZLE: ${win ? "PASS" : "FAIL"}`;
+            $("results").textContent = `PUZZLE: ${win ? "PASS" : "FAIL"}\nTime: ${rem}s`;
+            $("results").style.color = win ? "#34d399" : "#fb7185";
             canvas.onpointerdown = null; return;
         }
 
-        // Draw Target Zones Labels
-        ctx.fillStyle = "white"; ctx.font = "16px Arial";
-        ctx.fillText("GREEN HERE", 100, 130); ctx.fillText("RED HERE", 350, 130); ctx.fillText("YELLOW HERE", 600, 130);
-
-        pieces.forEach(p => {
-            ctx.fillStyle = p.color;
-            ctx.globalAlpha = p.locked ? 1.0 : 0.7;
-            ctx.fillRect(p.x, p.y, w, h);
-            ctx.strokeStyle = "white"; ctx.lineWidth = p.locked ? 3 : 1;
-            ctx.strokeRect(p.x, p.y, w, h);
+        // Draw Target Zone Foundations
+        ctx.lineWidth = 2;
+        Object.keys(zones).forEach(z => {
+            ctx.strokeStyle = z;
+            ctx.strokeRect(zones[z].x - 5, zones[z].y - 5, w + 10, (5 * 40) + h - 30);
         });
-        ctx.globalAlpha = 1.0;
-        ctx.fillStyle = "white"; ctx.fillText(`Time: ${rem}s  Locked: ${pieces.filter(p=>p.locked).length}/15`, 20, 30);
+
+        pieces.sort((a,b) => a.locked - b.locked).forEach(p => {
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.locked ? 1.0 : 0.8;
+            ctx.fillRect(p.x, p.y, w, h);
+            ctx.strokeStyle = "white";
+            ctx.strokeRect(p.x, p.y, w, h);
+            
+            // Draw Numbers
+            ctx.fillStyle = "black";
+            ctx.font = "bold 24px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(p.num, p.x + w/2, p.y + h/2 + 8);
+        });
+
+        ctx.globalAlpha = 1.0; ctx.textAlign = "left"; ctx.fillStyle = "white";
+        ctx.fillText(`Time: ${rem}s  Order: 1 at Top -> 5 at Bottom`, 20, 30);
         requestAnimationFrame(loop);
     }
 
@@ -112,8 +122,8 @@ function runPuzzle() {
     };
     canvas.onpointerup = () => {
         if (selected && !selected.isBlue) {
-            // Easier snap: 80 pixel radius
-            if (Math.abs(selected.x - selected.targetX) < 80 && Math.abs(selected.y - selected.targetY) < 80) {
+            // Increased Snap to 90px
+            if (Math.abs(selected.x - selected.targetX) < 90 && Math.abs(selected.y - selected.targetY) < 90) {
                 selected.x = selected.targetX; selected.y = selected.targetY; selected.locked = true;
             }
         }
@@ -122,7 +132,7 @@ function runPuzzle() {
     loop();
 }
 
-// --- UPDATED TRAILING TRACK (Longer Tail + Normal Accuracy) ---
+// --- TRAILING TRACK (25% Threshold) ---
 function runTrailing() {
     const duration = 45000;
     const start = performance.now();
@@ -133,15 +143,15 @@ function runTrailing() {
         let now = performance.now();
         if (now-start > duration) {
             const finalAcc = Math.min(100, (scoreSum / samples || 0)).toFixed(1);
-            const passed = finalAcc >= 20;
-            $("results").textContent = `TRAILING: ${finalAcc}% - ${passed ? "PASS" : "FAIL"}\n(Req: 20%)`;
+            const passed = finalAcc >= 25; // RAISED TO 25%
+            $("results").textContent = `TRAILING: ${finalAcc}% - ${passed ? "PASS" : "FAIL"}`;
+            $("results").style.color = passed ? "#34d399" : "#fb7185";
             canvas.onpointermove = null; return;
         }
         ball.x += ball.vx; ball.y += ball.vy;
         if (ball.x < 50 || ball.x > 850) ball.vx *= -1;
         if (ball.y < 50 || ball.y > 490) ball.vy *= -1;
 
-        // Longer tail: 40 points instead of 20
         trail.push({x: ball.x, y: ball.y}); if(trail.length > 40) trail.shift();
         
         trail.forEach((p,i) => {
@@ -154,15 +164,13 @@ function runTrailing() {
     canvas.onpointermove = (e) => {
         const rect = canvas.getBoundingClientRect();
         const ux = (e.clientX-rect.left)*(900/rect.width), uy = (e.clientY-rect.top)*(540/rect.height);
-        // Normalized math: Closer to 100% when right on top of the ball
         const dist = Math.hypot(ux-ball.x, uy-ball.y);
-        const frameAcc = Math.max(0, 100 - (dist * 0.8)); 
-        scoreSum += frameAcc; samples++;
+        scoreSum += Math.max(0, 100 - (dist * 0.8)); samples++;
     };
     loop();
 }
 
-// --- REACTION & BALANCE (Unchanged) ---
+// --- REACTION & BALANCE ---
 function runReaction() {
     const duration = 45000;
     const start = performance.now();
