@@ -16,7 +16,6 @@ window.addEventListener('load', () => {
 
     const wire = (id, fn) => { if ($(id)) $(id).onclick = fn; };
 
-    // --- BUTTON WIRING ---
     wire("btnPerms", async () => {
         try {
             if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
@@ -31,46 +30,45 @@ window.addEventListener('load', () => {
         } catch (e) { alert("Sensors blocked."); }
     });
 
-    wire("btnReaction", () => showOverlay("Reaction", "Tap Green/Blue. Ignore Red/Yellow.", runReaction));
+    wire("btnReaction", () => showOverlay("Reaction", "Tap Green/Blue. (Need 15 to Pass)", runReaction));
     wire("btnBalance", () => showOverlay("Balance", "Hold phone still against chest.", runBalance));
     wire("btnTrailing", () => showOverlay("Trailing", "Trace the shooting star tail.", runTrailing));
-    wire("btnPuzzle", () => showOverlay("Numerical Puzzle", "Stack 1-5 in order. Spawn is randomized!", runPuzzle));
-    wire("btnDog", () => showOverlay("Dog Memory", "Memorize for 8s. Reassemble in 5s!", runDogPuzzle));
-    wire("btnReset", () => { ctx.clearRect(0,0,canvas.width,canvas.height); $("results").textContent = "Reset."; });
+    wire("btnPuzzle", () => showOverlay("Numerical Puzzle", "Stack 1-5 in order.", runPuzzle));
+    wire("btnDog", () => showOverlay("Dog Memory", "Memorize for 8s. Reassemble in 7s.", runDogPuzzle));
+    wire("btnReset", () => { ctx.clearRect(0,0,canvas.width,canvas.height); $("results").textContent = "Waiting..."; });
 
-    // --- 1. NUMERICAL SQUARE PUZZLE (RANDOMIZED SPAWN) ---
+    // --- 1. NUMERICAL SQUARE PUZZLE (SIZE INCREASED TO 96) ---
     function runPuzzle() {
         const duration = 35000; const start = performance.now();
-        let pieces = [], selected = null; const w = 92, h = 92;
+        let pieces = [], selected = null; 
+        const w = 96, h = 96; // Increased size by ~4%
         const zones = {
             '#22c55e': { x: 80, y: 120, label: "GREEN" },
             '#ef4444': { x: 280, y: 120, label: "RED" },
             '#facc15': { x: 480, y: 120, label: "YELLOW" }
         };
-
         ['#22c55e','#ef4444','#facc15'].forEach((color) => {
             for(let i=0; i<5; i++) {
-                pieces.push({ color, num: i+1, tx: zones[color].x, ty: zones[color].y+(i*45), locked: false });
+                // ty adjusted slightly for 96px height spacing
+                pieces.push({ color, num: i+1, tx: zones[color].x, ty: zones[color].y+(i*48), locked: false });
             }
         });
-
-        // SHUFFLE the spawn order
         pieces = pieces.sort(() => Math.random() - 0.5);
-        pieces.forEach((p, idx) => { p.x = 750; p.y = 40 + (idx * 28); });
+        pieces.forEach((p, idx) => { p.x = 750; p.y = 30 + (idx * 30); });
 
         function loop() {
             ctx.clearRect(0,0,canvas.width,canvas.height);
             let rem = Math.max(0, ((duration - (performance.now()-start))/1000).toFixed(1));
             if (rem <= 0 || pieces.every(p=>p.locked)) {
                 const pass = pieces.every(p=>p.locked);
-                $("results").textContent = `PUZZLE: ${pass?"PASS":"FAIL"}`;
-                $("results").style.color = pass ? "#34d399" : "#fb7185";
+                $("results").textContent = pass ? "SQUARE PUZZLE: PASS" : "HIGH RISK DRIVER: PUZZLE FAIL";
+                $("results").style.color = pass ? "#34d399" : "#f43f5e";
                 return;
             }
-            // Draw visual pedestals
             Object.keys(zones).forEach(key => {
                 const z = zones[key]; ctx.strokeStyle = key; ctx.lineWidth = 2; ctx.setLineDash([5,5]);
-                ctx.strokeRect(z.x-5, z.y-5, w+10, (5*45)+55); ctx.setLineDash([]);
+                // Target box adjusted for 96px width
+                ctx.strokeRect(z.x-5, z.y-5, w+10, (5*48)+55); ctx.setLineDash([]);
                 ctx.fillStyle = key; ctx.font = "bold 16px Arial"; ctx.textAlign="center"; ctx.fillText(z.label, z.x+w/2, z.y-15);
             });
             pieces.slice().sort((a,b)=>a.locked-b.locked).forEach(p => {
@@ -93,13 +91,16 @@ window.addEventListener('load', () => {
             }
         };
         canvas.onpointerup = () => {
-            if (selected && Math.abs(selected.x-selected.tx)<90 && Math.abs(selected.y-selected.ty)<90) { selected.x=selected.tx; selected.y=selected.ty; selected.locked=true; }
+            // Snap distance remains 95 for precision
+            if (selected && Math.abs(selected.x-selected.tx)<95 && Math.abs(selected.y-selected.ty)<95) { 
+                selected.x=selected.tx; selected.y=selected.ty; selected.locked=true; 
+            }
             selected = null;
         };
         loop();
     }
 
-    // --- 2. DOG MEMORY PUZZLE ---
+    // --- 2. DOG MEMORY PUZZLE (7s RUN / 95px SNAP) ---
     function drawDogPart(x, y, part, color = "white") {
         ctx.fillStyle = color; ctx.beginPath();
         if (part === "body") { ctx.ellipse(x, y, 100, 60, 0, 0, Math.PI * 2); ctx.ellipse(x - 80, y - 40, 40, 50, 0, 0, Math.PI * 2); }
@@ -110,7 +111,7 @@ window.addEventListener('load', () => {
     }
 
     function runDogPuzzle() {
-        const memTime = 8000; const runTime = 5000;
+        const memTime = 8000; const runTime = 7000;
         const start = performance.now();
         let isMemorizing = true; let playStart = 0;
         let pieces = [
@@ -131,8 +132,8 @@ window.addEventListener('load', () => {
                 let rem = Math.max(0, ((runTime - (now-playStart))/1000).toFixed(1));
                 if (rem <= 0 || pieces.every(p => p.locked)) {
                     const pass = pieces.every(p => p.locked);
-                    $("results").textContent = `DOG PUZZLE: ${pass ? "PASS" : "FAIL"}`;
-                    $("results").style.color = pass ? "#34d399" : "#fb7185";
+                    $("results").textContent = pass ? "DOG PUZZLE: PASS" : "HIGH RISK DRIVER: MEMORY FAIL";
+                    $("results").style.color = pass ? "#34d399" : "#f43f5e";
                     return;
                 }
                 ctx.fillStyle="white"; ctx.font="24px Arial"; ctx.fillText(`Assemble! ${rem}s`, 50, 50);
@@ -151,22 +152,26 @@ window.addEventListener('load', () => {
             if(selected) { const rect = canvas.getBoundingClientRect(); selected.x = (e.clientX-rect.left)*(900/rect.width); selected.y = (e.clientY-rect.top)*(540/rect.height); }
         };
         canvas.onpointerup = () => {
-            if (selected && Math.hypot(selected.x - selected.tx, selected.y - selected.ty) < 90) { selected.x = selected.tx; selected.y = selected.ty; selected.locked = true; }
+            if (selected && Math.hypot(selected.x - selected.tx, selected.y - selected.ty) < 95) {
+                selected.x = selected.tx; selected.y = selected.ty; selected.locked = true; 
+            }
             selected = null;
         };
         loop();
     }
 
-    // --- 3. TRAILING TRACK ---
+    // --- 3. TRAILING TRACK (+4% SPEED) ---
     function runTrailing() {
         const start = performance.now();
-        let ball = {x:450, y:270, vx:4, vy:4}, trail = [], scoreSum = 0, samples = 0;
+        let ball = {x:450, y:270, vx:4.16, vy:4.16}, trail = [], scoreSum = 0, samples = 0;
         function loop() {
             ctx.clearRect(0,0,canvas.width,canvas.height);
             let now = performance.now();
             if (now-start > 45000) {
                 const acc = (scoreSum/samples || 0).toFixed(1);
-                $("results").textContent = `TRAILING: ${acc}% - ${acc >= 25 ? "PASS" : "FAIL"}`;
+                const pass = acc >= 25;
+                $("results").textContent = pass ? `TRAILING: PASS (${acc}%)` : `HIGH RISK DRIVER: TRAILING FAIL (${acc}%)`;
+                $("results").style.color = pass ? "#34d399" : "#f43f5e";
                 return;
             }
             ball.x += ball.vx; ball.y += ball.vy;
@@ -184,25 +189,36 @@ window.addEventListener('load', () => {
         loop();
     }
 
-    // --- 4. REACTION ---
+    // --- 4. REACTION (24 DOTS / 15 TO PASS) ---
     function runReaction() {
         const start = performance.now();
-        let objs = [], last = 0, score = 0;
+        const duration = 50000;
+        let objs = [], last = 0, score = 0, totalSpawned = 0;
         function loop() {
             ctx.clearRect(0,0,canvas.width,canvas.height);
             let now = performance.now();
-            if (now-start > 45000) { $("results").textContent = `REACTION: ${score} - ${score >= 15 ? "PASS" : "FAIL"}`; return; }
-            if (now - last > 900) {
-                last = now; const color = ['#22c55e','#ef4444','#facc15','#3b82f6'][Math.floor(Math.random()*4)];
-                objs.push({x: Math.random()*800+50, y: Math.random()*440+50, t: now, color, target: color==='#22c55e'||color==='#3b82f6'});
+            if (now-start > duration) { 
+                const pass = score >= 15;
+                $("results").textContent = pass ? `REACTION: PASS (${score}/24)` : `HIGH RISK DRIVER: REACTION FAIL (${score}/24)`;
+                $("results").style.color = pass ? "#34d399" : "#f43f5e";
+                return; 
             }
-            objs.forEach(o => { if(now-o.t < 1000) { ctx.fillStyle = o.color; ctx.beginPath(); ctx.arc(o.x, o.y, 40, 0, Math.PI*2); ctx.fill(); }});
+            if (now - last > 650 && totalSpawned < 24) {
+                last = now;
+                const colors = ['#22c55e','#3b82f6','#ef4444','#facc15'];
+                const color = colors[Math.floor(Math.random()*4)];
+                objs.push({x: Math.random()*800+50, y: Math.random()*440+50, t: now, color, target: color==='#22c55e'||color==='#3b82f6'});
+                totalSpawned++;
+            }
+            objs.forEach(o => { if(now-o.t < 980) { ctx.fillStyle = o.color; ctx.beginPath(); ctx.arc(o.x, o.y, 40, 0, Math.PI*2); ctx.fill(); }});
+            ctx.fillStyle = "white"; ctx.font = "20px Arial";
+            ctx.fillText(`Hits: ${score} | Time: ${((duration-(now-start))/1000).toFixed(0)}s`, 20, 30);
             requestAnimationFrame(loop);
         }
         canvas.onpointerdown = (e) => {
             const rect = canvas.getBoundingClientRect();
             const mx = (e.clientX-rect.left)*(900/rect.width), my = (e.clientY-rect.top)*(540/rect.height);
-            objs.forEach(o => { if(Math.hypot(mx-o.x, my-o.y) < 50) { o.t = 0; if(o.target) score++; else score--; }});
+            objs.forEach(o => { if(Math.hypot(mx-o.x, my-o.y) < 50 && (performance.now()-o.t < 980)) { o.t = 0; if(o.target) score++; else score--; }});
         };
         loop();
     }
@@ -216,7 +232,9 @@ window.addEventListener('load', () => {
                 const mags = motionSamples.map(s => Math.hypot(s.x, s.y, s.z));
                 const avg = mags.length ? mags.reduce((a,b)=>a+b,0)/mags.length : 0;
                 const sway = mags.length ? Math.sqrt(mags.reduce((a,b)=>a+Math.pow(b-avg,2),0)/mags.length) : 0;
-                $("results").textContent = `SWAY: ${sway.toFixed(4)} - ${sway < 0.08 ? "PASS" : "FAIL"}`;
+                const pass = sway < 0.08;
+                $("results").textContent = pass ? `SWAY: PASS (${sway.toFixed(4)})` : `HIGH RISK DRIVER: BALANCE FAIL (${sway.toFixed(4)})`;
+                $("results").style.color = pass ? "#34d399" : "#f43f5e";
             }, 10000);
         }, 3000);
     }
