@@ -193,11 +193,11 @@ window.addEventListener('load', () => {
         loop();
     }
 
-    // --- 4. REACTION (UPDATED PENALTY: -2) ---
+    // --- 4. REACTION (GUARANTEED 24 TARGETS) ---
     function runReaction() {
         const start = performance.now();
         const duration = 50000;
-        let objs = [], lastSpawn = 0, score = 0;
+        let objs = [], lastSpawn = 0, score = 0, targetsSpawned = 0;
         const spawnInterval = 663; 
 
         function loop() {
@@ -214,8 +214,17 @@ window.addEventListener('load', () => {
 
             if (now - lastSpawn > spawnInterval) {
                 lastSpawn = now;
-                const colors = ['#22c55e','#3b82f6','#ef4444','#facc15'];
-                const color = colors[Math.floor(Math.random()*4)];
+                let color;
+                
+                // If we still need to hit 24 targets, force Green or Blue (Targets)
+                if (targetsSpawned < 24) {
+                    color = Math.random() > 0.5 ? '#22c55e' : '#3b82f6';
+                    targetsSpawned++;
+                } else {
+                    // Otherwise, spawn purely distracting colors
+                    color = Math.random() > 0.5 ? '#ef4444' : '#facc15';
+                }
+
                 objs.push({
                     x: Math.random()*800+50, 
                     y: Math.random()*400+70, 
@@ -232,7 +241,7 @@ window.addEventListener('load', () => {
             });
 
             ctx.fillStyle = "white"; ctx.font = "bold 20px Arial"; ctx.textAlign = "left";
-            ctx.fillText(`Score: ${score} (Need 15)`, 20, 40);
+            ctx.fillText(`Hits: ${score} | Targets Available: ${targetsSpawned}/24`, 20, 40);
             ctx.fillText(`Time Left: ${((duration - elapsed)/1000).toFixed(1)}s`, 20, 70);
 
             requestAnimationFrame(loop);
@@ -247,7 +256,7 @@ window.addEventListener('load', () => {
                 if (Math.hypot(mx-o.x, my-o.y) < 45) {
                     o.clicked = true;
                     if(o.target) score++; 
-                    else score = Math.max(0, score - 2); // INCREASED PENALTY
+                    else score = Math.max(0, score - 2); 
                 }
             });
         };
