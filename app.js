@@ -193,7 +193,7 @@ window.addEventListener('load', () => {
         loop();
     }
 
-    // --- 4. REACTION (GUARANTEED 24 TARGETS) ---
+    // --- 4. REACTION (FORCED 24 TOTAL SPAWNS) ---
     function runReaction() {
         const start = performance.now();
         const duration = 50000;
@@ -212,22 +212,22 @@ window.addEventListener('load', () => {
                 return; 
             }
 
+            // MODIFIED SPAWN: If we haven't hit 24 targets, keep them coming
             if (now - lastSpawn > spawnInterval) {
                 lastSpawn = now;
                 let color;
-                
-                // If we still need to hit 24 targets, force Green or Blue (Targets)
                 if (targetsSpawned < 24) {
+                    // Targets: Green/Blue
                     color = Math.random() > 0.5 ? '#22c55e' : '#3b82f6';
                     targetsSpawned++;
                 } else {
-                    // Otherwise, spawn purely distracting colors
+                    // Distractors: Red/Yellow
                     color = Math.random() > 0.5 ? '#ef4444' : '#facc15';
                 }
 
                 objs.push({
-                    x: Math.random()*800+50, 
-                    y: Math.random()*400+70, 
+                    x: Math.random()*700+100, 
+                    y: Math.random()*300+120, 
                     t: now, 
                     color, 
                     target: (color==='#22c55e'||color==='#3b82f6'),
@@ -235,14 +235,16 @@ window.addEventListener('load', () => {
                 });
             }
 
-            objs = objs.filter(o => !o.clicked && (now - o.t < 1000));
+            // Balls stay on screen longer (1.2s) to ensure they can be hit
+            objs = objs.filter(o => !o.clicked && (now - o.t < 1200));
             objs.forEach(o => {
-                ctx.fillStyle = o.color; ctx.beginPath(); ctx.arc(o.x, o.y, 40, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = o.color; ctx.beginPath(); ctx.arc(o.x, o.y, 45, 0, Math.PI*2); ctx.fill();
             });
 
             ctx.fillStyle = "white"; ctx.font = "bold 20px Arial"; ctx.textAlign = "left";
-            ctx.fillText(`Hits: ${score} | Targets Available: ${targetsSpawned}/24`, 20, 40);
-            ctx.fillText(`Time Left: ${((duration - elapsed)/1000).toFixed(1)}s`, 20, 70);
+            ctx.fillText(`Score: ${score} (Need 15)`, 20, 40);
+            ctx.fillText(`Targets Spawned: ${targetsSpawned}/24`, 20, 70);
+            ctx.fillText(`Time Left: ${((duration - elapsed)/1000).toFixed(1)}s`, 20, 100);
 
             requestAnimationFrame(loop);
         }
@@ -253,7 +255,7 @@ window.addEventListener('load', () => {
             const my = (e.clientY-rect.top)*(540/rect.height);
             
             objs.forEach(o => {
-                if (Math.hypot(mx-o.x, my-o.y) < 45) {
+                if (Math.hypot(mx-o.x, my-o.y) < 55) {
                     o.clicked = true;
                     if(o.target) score++; 
                     else score = Math.max(0, score - 2); 
