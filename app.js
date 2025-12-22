@@ -6,6 +6,7 @@ window.addEventListener('DOMContentLoaded', () => {
     canvas = $("canvas");
     ctx = canvas.getContext("2d");
     
+    // Wire up buttons
     $("btnPerms").onclick = enableMotion;
     $("btnReaction").onclick = () => showOverlay("Reaction Test", "TAP: Green Circles, Green Stars/Squares, and Blue Stars/Squares. IGNORE: Red and Yellow.", runReaction);
     $("btnBalance").onclick = () => showOverlay("Balance Test", "Hold phone to chest and stand still. Test starts in 3 seconds.", runBalance);
@@ -41,7 +42,6 @@ async function enableMotion() {
     } catch (e) { alert("Sensors blocked."); }
 }
 
-// Helper to draw Stars
 function drawStar(x, y, r, p, m, color) {
     ctx.save();
     ctx.beginPath();
@@ -59,7 +59,7 @@ function drawStar(x, y, r, p, m, color) {
 }
 
 function runReaction() {
-    const duration = 45000; // 45 Seconds
+    const duration = 45000;
     const start = performance.now();
     let objects = [];
     let lastSpawn = 0;
@@ -72,68 +72,75 @@ function runReaction() {
 
         if (now - start > duration) {
             const passed = score >= 15;
-            $("results").textContent = `REACTION COMPLETE\n----------------\nScore: ${score}\nStatus: ${passed ? "PASSED" : "FAILED"}\n(Req: 15 pts)`;
+            $("results").textContent = `REACTION COMPLETE\nScore: ${score}\nStatus: ${passed ? "PASSED" : "FAILED"}`;
             $("results").style.color = passed ? "#34d399" : "#fb7185";
+            canvas.onpointerdown = null; // Clean up touch listener
             return;
         }
 
-        // Timer HUD
         ctx.fillStyle = "white";
-        ctx.font = "20px Arial";
-        ctx.fillText(`Time: ${remaining}s  Score: ${score}`, 20, 30);
+        ctx.font = "24px Arial";
+        ctx.fillText(`Time: ${remaining}s  Score: ${score}`, 20, 40);
 
-        // Spawn multiple items at random intervals
         if (now - lastSpawn > 800) {
             lastSpawn = now;
-            const count = Math.floor(Math.random() * 3) + 1; // 1 to 3 items at once
+            const count = Math.floor(Math.random() * 2) + 1; 
             for(let i=0; i<count; i++) {
                 const types = ['circle', 'star', 'square'];
-                const colors = ['#22c55e', '#ef4444', '#facc15', '#3b82f6']; // Green, Red, Yellow, Blue
+                const colors = ['#22c55e', '#ef4444', '#facc15', '#3b82f6'];
                 const type = types[Math.floor(Math.random() * types.length)];
                 const color = colors[Math.floor(Math.random() * colors.length)];
                 
-                // Logic: Is it a target?
                 let isTarget = false;
-                if (color === '#22c55e' && type === 'circle') isTarget = true; // Green Circle
+                if (color === '#22c55e' && type === 'circle') isTarget = true;
                 if ((color === '#22c55e' || color === '#3b82f6') && (type === 'star' || type === 'square')) isTarget = true;
 
                 objects.push({
-                    t: now, x: Math.random() * (canvas.width - 100) + 50, 
-                    y: Math.random() * (canvas.height - 100) + 50,
+                    t: now, x: Math.random() * (canvas.width - 120) + 60, 
+                    y: Math.random() * (canvas.height - 120) + 60,
                     type, color, isTarget, hit: false
                 });
             }
         }
 
         objects.forEach(obj => {
-            if (!obj.hit && now - obj.t < 1200) {
+            if (!obj.hit && now - obj.t < 1100) {
                 if (obj.type === 'circle') {
                     ctx.fillStyle = obj.color;
-                    ctx.beginPath(); ctx.arc(obj.x, obj.y, 40, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(obj.x, obj.y, 45, 0, Math.PI * 2); ctx.fill();
                 } else if (obj.type === 'square') {
                     ctx.fillStyle = obj.color;
-                    ctx.fillRect(obj.x - 35, obj.y - 35, 70, 70);
+                    ctx.fillRect(obj.x - 40, obj.y - 40, 80, 80);
                 } else {
-                    drawStar(obj.x, obj.y, 40, 5, 0.5, obj.color);
+                    drawStar(obj.x, obj.y, 45, 5, 0.5, obj.color);
                 }
             }
         });
         requestAnimationFrame(gameLoop);
     }
 
-    canvas.onclick = (e) => {
+    // MOBILE TOUCH FIX: Use onpointerdown for instant response
+    canvas.onpointerdown = (e) => {
+        e.preventDefault();
         const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
+        
+        // Calculate the scale between CSS size and internal Canvas resolution
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        
+        const mx = (e.clientX - rect.left) * scaleX;
+        const my = (e.clientY - rect.top) * scaleY;
 
         objects.forEach(obj => {
             const dist = Math.hypot(mx - obj.x, my - obj.y);
-            if (dist < 50 && !obj.hit && (now() - obj.t < 1200)) {
+            // Increased hit radius to 60 for easier finger tapping
+            if (dist < 60 && !obj.hit && (performance.now() - obj.t < 1100)) {
                 obj.hit = true;
                 if (obj.isTarget) score++; else score--;
             }
         });
     };
+    
     gameLoop();
 }
 
@@ -149,7 +156,7 @@ function runBalance() {
         motionSamples = [];
         $("results").textContent = "RECORDING... Stand still.";
         setTimeout(() => {
-            if (motionSamples.length < 20) { $("results").textContent = "No data."; return; }
+            if (motionSamples.length < 20) { $("results").textContent = "No data. Enable Motion first."; return; }
             const mags = motionSamples.map(s => Math.hypot(s.x, s.y, s.z));
             const avg = mags.reduce((a, b) => a + b, 0) / mags.length;
             const variance = mags.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / mags.length;
@@ -160,4 +167,3 @@ function runBalance() {
 }
 
 function resetApp() { $("results").textContent = "Reset."; ctx.clearRect(0,0,canvas.width,canvas.height); }
-function now() { return performance.now(); }
