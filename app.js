@@ -6,10 +6,11 @@ window.addEventListener('DOMContentLoaded', () => {
     ctx = canvas.getContext("2d");
     
     $("btnPerms").onclick = enableMotion;
-    $("btnReaction").onclick = () => showOverlay("Reaction", "Tap Green/Blue items. Ignore Red/Yellow.", runReaction);
+    $("btnReaction").onclick = () => showOverlay("Reaction", "Tap Green/Blue. Ignore Red/Yellow.", runReaction);
     $("btnBalance").onclick = () => showOverlay("Balance", "Hold phone to chest, stand still.", runBalance);
     $("btnTrailing").onclick = () => showOverlay("Trailing", "Trace the shooting star tail.", runTrailing);
-    $("btnPuzzle").onclick = () => showOverlay("Numerical Puzzle", "Stack 1-5 in order for Green, Red, and Yellow. Ignore Blue.", runPuzzle);
+    $("btnPuzzle").onclick = () => showOverlay("Numerical Puzzle", "Stack 1-5 by color.", runPuzzle);
+    $("btnDog").onclick = () => showOverlay("Dog Memory", "Memorize the dog for 8s, then reassemble the missing parts!", runDogPuzzle);
     $("btnReset").onclick = () => { ctx.clearRect(0,0,canvas.width,canvas.height); $("results").textContent = "Reset."; };
 });
 
@@ -22,193 +23,93 @@ function showOverlay(title, text, startFn) {
     $("overlayStart").onclick = () => { ov.style.display = "none"; startFn(); };
 }
 
-async function enableMotion() {
-    try {
-        if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
-            await DeviceMotionEvent.requestPermission();
-        }
-        window.addEventListener("devicemotion", (e) => {
-            const a = e.accelerationIncludingGravity;
-            if(a) motionSamples.push({x: a.x, y: a.y, z: a.z, t: performance.now()});
-        });
-        $("motionStatus").textContent = "Motion: Active";
-        $("motionStatus").style.color = "#34d399";
-    } catch (e) { alert("Motion sensors blocked."); }
+// --- DOG PUZZLE LOGIC ---
+function drawDogPart(x, y, part, color = "white") {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    if (part === "body") {
+        ctx.ellipse(x, y, 100, 60, 0, 0, Math.PI * 2); // Body
+        ctx.ellipse(x - 80, y - 40, 40, 50, 0, 0, Math.PI * 2); // Head
+    } else if (part === "ear") {
+        ctx.moveTo(x, y); ctx.lineTo(x + 15, y - 40); ctx.lineTo(x + 30, y); // Ear triangle
+    } else if (part === "tail") {
+        ctx.quadraticCurveTo(x + 40, y - 60, x + 80, y - 20); ctx.lineWidth = 15; ctx.strokeStyle = color; ctx.stroke(); return;
+    } else if (part === "leg") {
+        ctx.fillRect(x, y, 20, 50); // Simple leg
+    }
+    ctx.fill();
 }
 
-// --- NUMERICAL CATEGORY PUZZLE (35s Limit) ---
-function runPuzzle() {
-    const duration = 35000; 
+function runDogPuzzle() {
+    const flashDuration = 8000;
     const start = performance.now();
-    let pieces = [];
+    let isMemorizing = true;
+    let pieces = [
+        { id: "Ear", type: "ear", x: 650, y: 100, tx: 345, ty: 195, locked: false },
+        { id: "Tail", type: "tail", x: 650, y: 200, tx: 530, ty: 270, locked: false },
+        { id: "Leg1", type: "leg", x: 650, y: 300, tx: 400, ty: 330, locked: false },
+        { id: "Leg2", type: "leg", x: 750, y: 300, tx: 480, ty: 330, locked: false }
+    ];
     let selected = null;
-    const w = 92, h = 92; // 15% larger than 80px
-
-    const zones = {
-        '#22c55e': { x: 100, y: 150 }, 
-        '#ef4444': { x: 350, y: 150 }, 
-        '#facc15': { x: 600, y: 150 }  
-    };
-
-    const colors = ['#22c55e', '#ef4444', '#facc15'];
-    colors.forEach(color => {
-        for(let i=0; i<5; i++) {
-            pieces.push({
-                color: color,
-                num: i + 1,
-                // Spawning more evenly in a side-bar area
-                x: 800, 
-                y: 50 + (pieces.length * 25),
-                targetX: zones[color].x,
-                targetY: zones[color].y + (i * 40), 
-                locked: false,
-                isBlue: false
-            });
-        }
-    });
-
-    for(let i=0; i<3; i++) {
-        pieces.push({ color: '#3b82f6', num: 'X', x: 800, y: 450 + (i*30), locked: false, isBlue: true });
-    }
 
     function loop() {
-        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         let now = performance.now();
-        let rem = Math.max(0, ((duration - (now-start))/1000).toFixed(1));
+        let elapsed = now - start;
 
-        if (now-start > duration || pieces.filter(p=>!p.isBlue).every(p=>p.locked)) {
-            const win = pieces.filter(p=>!p.isBlue).every(p=>p.locked);
-            $("results").textContent = `PUZZLE: ${win ? "PASS" : "FAIL"}\nTime: ${rem}s`;
-            $("results").style.color = win ? "#34d399" : "#fb7185";
-            canvas.onpointerdown = null; return;
+        if (isMemorizing) {
+            ctx.fillStyle = "white"; ctx.font = "24px Arial";
+            ctx.fillText(`Memorize! Time remaining: ${Math.max(0, (8 - elapsed/1000).toFixed(1))}s`, 50, 50);
+            // Draw Full Dog
+            drawDogPart(450, 270, "body");
+            drawDogPart(345, 195, "ear");
+            drawDogPart(530, 270, "tail");
+            drawDogPart(400, 330, "leg");
+            drawDogPart(480, 330, "leg");
+
+            if (elapsed > flashDuration) isMemorizing = false;
+            requestAnimationFrame(loop);
+            return;
         }
 
-        // Draw Target Zone Foundations
-        ctx.lineWidth = 2;
-        Object.keys(zones).forEach(z => {
-            ctx.strokeStyle = z;
-            ctx.strokeRect(zones[z].x - 5, zones[z].y - 5, w + 10, (5 * 40) + h - 30);
+        // --- Assembly Phase ---
+        if (pieces.every(p => p.locked)) {
+            $("results").textContent = "DOG PUZZLE: PASS";
+            $("results").style.color = "#34d399";
+            return;
+        }
+
+        ctx.fillStyle = "white"; ctx.font = "20px Arial";
+        ctx.fillText("Reassemble the dog! Drag parts to the correct spots.", 50, 50);
+
+        drawDogPart(450, 270, "body", "#333"); // Dark "ghost" body
+        
+        pieces.forEach(p => {
+            drawDogPart(p.x, p.y, p.type, p.locked ? "white" : "#7dd3fc");
         });
 
-        pieces.sort((a,b) => a.locked - b.locked).forEach(p => {
-            ctx.fillStyle = p.color;
-            ctx.globalAlpha = p.locked ? 1.0 : 0.8;
-            ctx.fillRect(p.x, p.y, w, h);
-            ctx.strokeStyle = "white";
-            ctx.strokeRect(p.x, p.y, w, h);
-            
-            // Draw Numbers
-            ctx.fillStyle = "black";
-            ctx.font = "bold 24px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText(p.num, p.x + w/2, p.y + h/2 + 8);
-        });
-
-        ctx.globalAlpha = 1.0; ctx.textAlign = "left"; ctx.fillStyle = "white";
-        ctx.fillText(`Time: ${rem}s  Order: 1 at Top -> 5 at Bottom`, 20, 30);
         requestAnimationFrame(loop);
     }
 
     canvas.onpointerdown = (e) => {
+        if (isMemorizing) return;
         const rect = canvas.getBoundingClientRect();
         const mx = (e.clientX-rect.left)*(900/rect.width), my = (e.clientY-rect.top)*(540/rect.height);
-        selected = pieces.findLast(p => !p.locked && mx > p.x && mx < p.x+w && my > p.y && my < p.y+h);
+        selected = pieces.findLast(p => !p.locked && Math.hypot(mx-p.x, my-p.y) < 60);
     };
     canvas.onpointermove = (e) => {
         if (!selected) return;
         const rect = canvas.getBoundingClientRect();
-        selected.x = (e.clientX-rect.left)*(900/rect.width) - w/2;
-        selected.y = (e.clientY-rect.top)*(540/rect.height) - h/2;
+        selected.x = (e.clientX-rect.left)*(900/rect.width);
+        selected.y = (e.clientY-rect.top)*(540/rect.height);
     };
     canvas.onpointerup = () => {
-        if (selected && !selected.isBlue) {
-            // Increased Snap to 90px
-            if (Math.abs(selected.x - selected.targetX) < 90 && Math.abs(selected.y - selected.targetY) < 90) {
-                selected.x = selected.targetX; selected.y = selected.targetY; selected.locked = true;
-            }
+        if (selected && Math.hypot(selected.x - selected.tx, selected.y - selected.ty) < 90) {
+            selected.x = selected.tx; selected.y = selected.ty; selected.locked = true;
         }
         selected = null;
     };
     loop();
 }
 
-// --- TRAILING TRACK (25% Threshold) ---
-function runTrailing() {
-    const duration = 45000;
-    const start = performance.now();
-    let ball = { x: 450, y: 270, vx: 4, vy: 4 }, trail = [], scoreSum = 0, samples = 0;
-
-    function loop() {
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        let now = performance.now();
-        if (now-start > duration) {
-            const finalAcc = Math.min(100, (scoreSum / samples || 0)).toFixed(1);
-            const passed = finalAcc >= 25; // RAISED TO 25%
-            $("results").textContent = `TRAILING: ${finalAcc}% - ${passed ? "PASS" : "FAIL"}`;
-            $("results").style.color = passed ? "#34d399" : "#fb7185";
-            canvas.onpointermove = null; return;
-        }
-        ball.x += ball.vx; ball.y += ball.vy;
-        if (ball.x < 50 || ball.x > 850) ball.vx *= -1;
-        if (ball.y < 50 || ball.y > 490) ball.vy *= -1;
-
-        trail.push({x: ball.x, y: ball.y}); if(trail.length > 40) trail.shift();
-        
-        trail.forEach((p,i) => {
-            ctx.fillStyle = `rgba(59,130,246,${i/40})`;
-            ctx.beginPath(); ctx.arc(p.x, p.y, (i/40)*30, 0, Math.PI*2); ctx.fill();
-        });
-        ctx.fillStyle = "#22c55e"; ctx.beginPath(); ctx.arc(ball.x, ball.y, 25, 0, Math.PI*2); ctx.fill();
-        requestAnimationFrame(loop);
-    }
-    canvas.onpointermove = (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const ux = (e.clientX-rect.left)*(900/rect.width), uy = (e.clientY-rect.top)*(540/rect.height);
-        const dist = Math.hypot(ux-ball.x, uy-ball.y);
-        scoreSum += Math.max(0, 100 - (dist * 0.8)); samples++;
-    };
-    loop();
-}
-
-// --- REACTION & BALANCE ---
-function runReaction() {
-    const duration = 45000;
-    const start = performance.now();
-    let objs = [], last = 0, score = 0;
-    function loop() {
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        let now = performance.now();
-        if (now-start > duration) { $("results").textContent = `REACTION: ${score} pts - ${score >= 15 ? "PASS" : "FAIL"}`; return; }
-        if (now - last > 900) {
-            last = now;
-            const color = ['#22c55e','#ef4444','#facc15','#3b82f6'][Math.floor(Math.random()*4)];
-            objs.push({x: Math.random()*800+50, y: Math.random()*440+50, t: now, color, target: color==='#22c55e'||color==='#3b82f6'});
-        }
-        objs.forEach(o => { if(now-o.t < 1000) { ctx.fillStyle = o.color; ctx.beginPath(); ctx.arc(o.x, o.y, 40, 0, Math.PI*2); ctx.fill(); }});
-        requestAnimationFrame(loop);
-    }
-    canvas.onpointerdown = (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const mx = (e.clientX-rect.left)*(900/rect.width), my = (e.clientY-rect.top)*(540/rect.height);
-        objs.forEach(o => { if(Math.hypot(mx-o.x, my-o.y) < 50) { o.t = 0; if(o.target) score++; else score--; }});
-    };
-    loop();
-}
-
-function runBalance() {
-    motionSamples = [];
-    $("results").textContent = "Get ready... 3s";
-    setTimeout(() => {
-        motionSamples = [];
-        $("results").textContent = "Recording...";
-        setTimeout(() => {
-            if (motionSamples.length < 5) { $("results").textContent = "Error: No data."; return; }
-            const mags = motionSamples.map(s => Math.hypot(s.x, s.y, s.z));
-            const avg = mags.reduce((a,b)=>a+b,0)/mags.length;
-            const sway = Math.sqrt(mags.reduce((a,b)=>a+Math.pow(b-avg,2),0)/mags.length);
-            $("results").textContent = `SWAY: ${sway.toFixed(4)} - ${sway < 0.08 ? "PASS" : "FAIL"}`;
-        }, 10000);
-    }, 3000);
-}
-
-function resetApp() { $("results").textContent = "Reset."; ctx.clearRect(0,0,canvas.width,canvas.height); }
+// --- KEEP ALL OTHER FUNCTIONS (runTrailing, runReaction, etc.) BELOW ---
